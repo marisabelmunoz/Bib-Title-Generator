@@ -54,18 +54,11 @@ def build_prompt(biography, index_val, year, place, description, isbn, format_bo
     idx_clean = "1" if index_val == "1" else "0"
 
     # 2. Construct exactly 40 chars for 008
-    # Positions: 00-05 (Date), 06 (Type), 07-10 (Year), 11-14 (Blank), 15-17 (Place)
-    part1 = f"260414s{year_clean}    {place_clean}" 
-    # Positions: 18-30 (Illustrations, Nature, etc.) - We use spaces and '0|'
-    part2 = "           0|" 
-    # Positions: 31 (Index), 32 (Blank), 33 (Lit form), 34 (Bio), 35-37 (Lang), 38 (Mod), 39 (Src)
-    part3 = f"{idx_clean} u{bio_clean}eng d"
-    
-    field_008 = part1 + part2 + part3 # Total: 40 characters
-
+    # need to have correct date of today
+    today_str = datetime.now().strftime("%y%m%d") # YYMMDD format for date entered
     lang_name = LANG_MAP.get(cat_lang, "English")
-
-    # 3. Build the prompt string
+    field_008 = f"{today_str}s{year_clean}    {place_clean}           00{idx_clean}{bio_clean}LANG_CODE_HERE  d"
+    
     prompt = f"""You are a professional cataloger following RDA guidelines and MARC21 formatting.
 
 Your task: analyze the input metadata provided and generate a complete MARC21 bibliographic record in MARCXML format.
@@ -92,9 +85,20 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 
 **008 fixed field (books):**
 
-The 008 field MUST be exactly 40 characters. Use the following structure with placeholders you must fill:
+**CRITICAL 008 CONSTRUCTION:**
 
-Base pattern: `260414s{year}    {place}           0|{index_val} [LITFORM][BIO][LANGCODE] d`
+The 008 field is pre-built as: `{field_008}`
+
+You MUST replace `LANG_CODE_HERE` with the correct 3-character language code (e.g., 'dut', 'eng', 'fre').
+
+DO NOT change anything else in the 008 field. Keep the `00`, the index value, and the biography code exactly as shown.
+
+**The 008 field must be exactly 40 characters including spaces. Do not add or remove spaces.**
+
+**CORRECT PATTERN (spaces exactly as shown):**
+`260414s{year}    {place}           00{index_val}[LITFORM][BIO][LANGCODE] d`
+
+**They must be consecutive characters including the spaces!**
 
 Where:
 - `[LITFORM]` = YOU determine (single character, position 33) - see literary form rules below
@@ -103,10 +107,31 @@ Where:
 
 **CRITICAL:** Do NOT copy 'u' or 'eng' from any example. You MUST analyze the input metadata and replace `[LITFORM]`, `[BIO]`, and `[LANGCODE]` with your determined values.
 
-Example of correct output after your analysis:
-- For a Dutch collective biography: `260414s2026    ne           0|1 0c dut d`
-- For an English novel: `260414s2026    xxu           0|1 f   eng d`
-- For a Dutch poetry collection: `260414s2026    ne           0|1 p   dut d`
+**STRICT POSITION MAPPING (40 characters exactly):**
+**EXACT CHARACTER POSITIONS (count them, DO NOT RETURN RESULT UNTIL CORRECT!):**
+
+| Position(s) | Content | Source |
+|-------------|---------|--------|
+| 00-05 | `260414` | FIXED - Date entered |
+| 06 | `s` | FIXED - Single known date |
+| 07-10 | `{year_clean}` | From publication date |
+| 11-12 | space space | FIXED | ALWAYS INCLUDE THESE 2 SPACES BEFORE PLACE CODE!
+| 13-14 | space space | FIXED | ALWAYS INCLUDE THESE 2 SPACES BEFORE PLACE CODE!
+| 15-17 | `{place_clean}` | From publisher country |
+| 18-21 | space space space space | FIXED | ALWAYS INCLUDE THESE 4 SPACES BEFORE THE INDEX VALUE!
+| 22 | space | FIXED |
+| 23-29 | space space space space space space space | FIXED |
+| 30 | `0` | FIXED - No nature of contents |
+| 31 | `|` | FIXED - Separator |
+| 32 | space | FIXED | ALWAYS INCLUDE THIS SPACE BEFORE LITFORM!!! 
+| 33 | `[LITFORM]` | YOU ANALYZE |
+| 34 | `[BIO]` | YOU ANALYZE |
+| 35-37 | `[LANGCODE]` | YOU ANALYZE |
+| 38 | space | FIXED |
+| 39 | `d` | FIXED - Other cataloging source | ALWAYS INCLUDE THIS AT THE END!
+
+**Length verification:** Count each position including spaces above. Total = 40 characters, not less, nor more!
+YYMMDDsYYYY____xx____________###_#_lan__d
 
 **Determining 008 Language Code (positions 35-37):**
 
@@ -128,7 +153,6 @@ Examples from real cases:
 - Title "The Great Gatsby" + English summary → code 'eng'  
 - Title "Le Petit Prince" + French summary → code 'fre'
 
-
 **Determining 008 Literary Form (position 33):**
 
 CRITICAL: This identifies the literary genre of the WORK CONTENT. Position 34 (Biography) is a SEPARATE field that works alongside position 33, not instead of it.
@@ -144,7 +168,7 @@ Analyze the input metadata in this order:
 Rules:
 - Never default to 'u' (unknown) without attempting analysis
 - If the work is a biography → position 33 = '0' (non-fiction) AND position 34 = appropriate biography code
-- If the work is non-fiction but not a biography → position 33 = '0' and position 34 = ' ' (blank) or '0' (no biographical material)
+- If the work is non-fiction but not a biography → position 33 = '0' and position 34 = ' ' (blank)
 - Use '1' or specific codes ('f', 'j', 'p', etc.) only for imaginative/creative works
 - When truly ambiguous after full analysis, use 'u'
 
@@ -170,14 +194,13 @@ Rules:
 - ' ' (blank) = Not a biography
 
 Examples from real cases:
-- Title "De goeroe en de baron" + journalist author + biography of Krishnamurti and Van Pallandt → position 33 = '0', position 34 = 'c' (collective biography)
+- Title "De goeroe en de baron" + journalist author + biography of Krishnamurti and Van Pallandt → position 33 = '0', position 34 = 'c'
 - Title "Nelson Mandela: A Biography" + individual life story → position 33 = '0', position 34 = 'b'
 - Title "Mijn leven" (My Life) + autobiography → position 33 = '0', position 34 = 'a'
-- Title "De aanslag" + fictional narrative → position 33 = 'f' or '1', position 34 = ' ' (blank)
+- Title "De aanslag" + fictional narrative → position 33 = 'f' or '1', position 34 = ' '
 - Title "Verzameld werk" + poetry collection → position 33 = 'p', position 34 = ' '
 
 **Common mistake to avoid:** DO NOT set position 33 to 'u' just because you set position 34 to 'a', 'b', or 'c'. A biography is non-fiction first, biography second.
-
 
 - Value: `{field_008}`
 - Year: {year_clean}
@@ -246,6 +269,8 @@ Format: {format_book if isbn else "no isbn tag to include this, ignore"}
 
 **Specific User Instructions:**
 {extra_instructions if extra_instructions else "None provided."}
+
+**Before outputting, verify the 008 field is exactly 40 characters and follows the position mapping above. Analyze the input metadata carefully to determine the correct codes for literary form, biography, and language!**
 
 **Return only the MARCXML record in a code block to copy.**
 """
