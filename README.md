@@ -2,7 +2,7 @@
 
 ## Usage:
 
-1. download the code to a permanent location where it will live. (If it moves you will need to run install again)
+1. download and extract the code to a permanent location where it will live. (If it moves you will need to run install again)
 2. Right click inside the folder created and open the Terminal, inside the terminal type: `python install.py`
 3. Wait for the dependencies to install.
 4. Once the shortcut is created, **drag it to Desktop or taskbar** as you wish.
