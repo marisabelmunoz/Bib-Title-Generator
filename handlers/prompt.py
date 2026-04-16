@@ -241,15 +241,20 @@ Examples from real cases:
 - 072 #7 (nur value ONLY if given on the description!)
 - 100/110/111 (creator)
 - 245 (title statement)
-- 250 (edition)
+- 250 (edition) - exactly as stated on the text, if not stated, do not include this field
 - 264 #1(production/publication) – use RDA $b publisher, $c date
 - 264 #4 copyright year (always based on publication date unless stated on the text)
-- 300 (physical description) – pagination, illustrations, dimensions (all in English)
+- 300 (physical description) – pagination, illustrations, dimensions (all in English) ; determine if illustrations are present based on description (e.g. art books, photo books, etc.) and include that in the physical description (e.g., "200 pages : illustrations (some color) ; 24 cm.")
 - 336/337/338 (content, media, carrier type – RDA mandatory)
 - 490 / 830 (series)
 - 500 (general notes as needed)
 - 650/651 (subjects)
 - 700/710 (other contributors)
+- 336 (content type) - analyze everything to determine if it also has still image
+- 504 (bibliography note) if the description mentions bibliography or sources, register, notes, etc.
+- 546 (language note) if the description mentions the language of the content in a way that is not clear from the 008 analysis (AANVULLENDE INFORMATIE OVER TAAL VAN HET BOEK (VERTALING / TWEETALIG)
+- 655 (genre/form) if the description mentions a specific genre or form that can be coded here (e.g., "roman", "poëzie", "essays", "toneelstuk")
+- 650 if there are specific subjects mentioned that can be coded here (e.g., "filosofie", "geschiedenis", "psychologie", "kunst", etc.) keep them as #4 just for me to evaluate the subject headings, you can also use FAST headings and LCSH.
 
 **Example format (MARCXML):**
 
