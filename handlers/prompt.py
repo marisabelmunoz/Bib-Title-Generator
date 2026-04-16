@@ -19,6 +19,8 @@ PLACE_LABELS = {
     "be":  "Belgium (be)",
     "au":  "Australia (au)",
     "cn":  "Canada (cn)",
+
+    # auto generate from: https://www.loc.gov/standards/codelists/countries.xml
 }
 
 BIOGRAPHY_LABELS = {
@@ -89,13 +91,102 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - Example: `<datafield tag="020" ind1=" " ind2=" "><subfield code="a">9781234567890</subfield><subfield code="q">(hardcover)</subfield></datafield>`
 
 **008 fixed field (books):**
+
+The 008 field MUST be exactly 40 characters. Use the following structure with placeholders you must fill:
+
+Base pattern: `260414s{year}    {place}           0|{index_val} [LITFORM][BIO][LANGCODE] d`
+
+Where:
+- `[LITFORM]` = YOU determine (single character, position 33) - see literary form rules below
+- `[BIO]` = YOU determine (single character, position 34) - see biography rules below  
+- `[LANGCODE]` = YOU determine (3 characters, positions 35-37) - see language rules below
+
+**CRITICAL:** Do NOT copy 'u' or 'eng' from any example. You MUST analyze the input metadata and replace `[LITFORM]`, `[BIO]`, and `[LANGCODE]` with your determined values.
+
+Example of correct output after your analysis:
+- For a Dutch collective biography: `260414s2026    ne           0|1 0c dut d`
+- For an English novel: `260414s2026    xxu           0|1 f   eng d`
+- For a Dutch poetry collection: `260414s2026    ne           0|1 p   dut d`
+
+**Determining 008 Language Code (positions 35-37):**
+
+CRITICAL: This is the language of the WORK CONTENT, NOT the cataloging language.
+
+Analyze the input metadata in this order:
+1. Any explicit "Taal"/"Language" field → use that code
+2. The language of the title and subtitle
+3. The language of the 520 summary/description
+4. The author's name and publisher location as secondary clues
+
+Rules:
+- Never default to 'eng'
+- Never copy the 040 $b cataloging language without verification
+- When in doubt after analysis, use 'und' (undetermined)
+
+Examples from real cases:
+- Title "De goeroe en de baron" + Dutch summary → code 'dut'
+- Title "The Great Gatsby" + English summary → code 'eng'  
+- Title "Le Petit Prince" + French summary → code 'fre'
+
+
+**Determining 008 Literary Form (position 33):**
+
+CRITICAL: This identifies the literary genre of the WORK CONTENT. Position 34 (Biography) is a SEPARATE field that works alongside position 33, not instead of it.
+
+Analyze the input metadata in this order:
+1. Any explicit genre/literary form terms (e.g., "roman", "novel", "poëzie", "essays", "toneelstuk")
+2. The content and narrative style described in the 520 summary
+3. Subject headings or classification codes (e.g., NUR, BISAC)
+4. Author's known works or author role
+
+**Core rule: ALL biographies, autobiographies, memoirs, and collective biographies are NON-FICTION.** Always use code '0' for position 33 when the work is biographical. The biography type (individual, collective, autobiography) is recorded in position 34 ONLY — it NEVER changes position 33 to 'u' or any other code.
+
+Rules:
+- Never default to 'u' (unknown) without attempting analysis
+- If the work is a biography → position 33 = '0' (non-fiction) AND position 34 = appropriate biography code
+- If the work is non-fiction but not a biography → position 33 = '0' and position 34 = ' ' (blank) or '0' (no biographical material)
+- Use '1' or specific codes ('f', 'j', 'p', etc.) only for imaginative/creative works
+- When truly ambiguous after full analysis, use 'u'
+
+**Codes reference (position 33):**
+- 0 = Non-fiction (biographies, history, textbooks, journalism, self-help, science)
+- 1 = Fiction (general fiction)
+- f = Novels
+- j = Short stories
+- p = Poetry
+- d = Dramas
+- e = Essays
+- h = Humor, satire
+- i = Letters
+- m = Mixed forms
+- s = Speeches
+- u = Unknown (only as last resort)
+
+**Position 34 (Biography) quick reference (used WITH position 33='0'):**
+- a = Autobiography
+- b = Individual biography (one person, written by someone else)
+- c = Collective biography (multiple persons)
+- d = Contains biographical information
+- ' ' (blank) = Not a biography
+
+Examples from real cases:
+- Title "De goeroe en de baron" + journalist author + biography of Krishnamurti and Van Pallandt → position 33 = '0', position 34 = 'c' (collective biography)
+- Title "Nelson Mandela: A Biography" + individual life story → position 33 = '0', position 34 = 'b'
+- Title "Mijn leven" (My Life) + autobiography → position 33 = '0', position 34 = 'a'
+- Title "De aanslag" + fictional narrative → position 33 = 'f' or '1', position 34 = ' ' (blank)
+- Title "Verzameld werk" + poetry collection → position 33 = 'p', position 34 = ' '
+
+**Common mistake to avoid:** DO NOT set position 33 to 'u' just because you set position 34 to 'a', 'b', or 'c'. A biography is non-fiction first, biography second.
+
+
 - Value: `{field_008}`
 - Year: {year_clean}
-- Country code: {place_clean}
+# if:  "not match on list, verify https://www.loc.gov/standards/codelists/countries.xml"
+- Country code: {place_clean if place_clean.strip() in PLACE_LABELS else "Unknown (verify against LOC country codes : https://www.loc.gov/marc/countries/countries_code.html)"}
 - Index present (008/31): {idx_clean}
 - Biography (008/34): {bio_clean!r}
-- Literary form (008/33): u (unknown)
-- Language (008/35-37): {cat_lang} same as cat language
+- Literary form (008/33): analyze content to determine this
+- Language (008/35-37) : analyze content to determine this 
 
 **Field 020 (ISBN) Instructions:**
 - Use ISBN: {isbn if isbn else "Check input metadata"}
