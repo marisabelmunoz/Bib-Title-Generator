@@ -112,26 +112,27 @@ Where:
 
 | Position(s) | Content | Source |
 |-------------|---------|--------|
-| 00-05 | `260414` | FIXED - Date entered |
-| 06 | `s` | FIXED - Single known date |
+| 00-05 | `{today_str}` | FIXED - Date entered |
+| 06    | `s` | FIXED - Single known date |
 | 07-10 | `{year_clean}` | From publication date |
 | 11-12 | space space | FIXED | ALWAYS INCLUDE THESE 2 SPACES BEFORE PLACE CODE!
 | 13-14 | space space | FIXED | ALWAYS INCLUDE THESE 2 SPACES BEFORE PLACE CODE!
 | 15-17 | `{place_clean}` | From publisher country |
 | 18-21 | space space space space | FIXED | ALWAYS INCLUDE THESE 4 SPACES BEFORE THE INDEX VALUE!
-| 22 | space | FIXED |
-| 23-29 | space space space space space space space | FIXED |
-| 30 | `0` | FIXED - No nature of contents |
-| 31 | `|` | FIXED - Separator |
-| 32 | space | FIXED | ALWAYS INCLUDE THIS SPACE BEFORE LITFORM!!! 
-| 33 | `[LITFORM]` | YOU ANALYZE |
-| 34 | `[BIO]` | YOU ANALYZE |
+| 22    | space | FIXED |
+| 23    | `r` | FIXED - Reproduction (not a reproduction, but this is the correct code for books) |
+| 24-29 | space space space space space space | FIXED |
+| 30    | `0` | FIXED - No nature of contents |
+| 31    | `{index_val}` | FIXED - Separator |
+| 32    | space | FIXED | ALWAYS INCLUDE THIS SPACE BEFORE LITFORM!!! 
+| 33    | `[LITFORM]` | YOU ANALYZE |
+| 34    | `[BIO]` | YOU ANALYZE |
 | 35-37 | `[LANGCODE]` | YOU ANALYZE |
-| 38 | space | FIXED |
-| 39 | `d` | FIXED - Other cataloging source | ALWAYS INCLUDE THIS AT THE END!
+| 38    | space | FIXED |
+| 39    | `d` | FIXED - Other cataloging source | ALWAYS INCLUDE THIS AT THE END!
 
 **Length verification:** Count each position including spaces above. Total = 40 characters, not less, nor more!
-YYMMDDsYYYY____xx____________###_#_lan__d
+YYMMDDsYYYY____xx_____r______###_#_lan__d
 
 **Determining 008 Language Code (positions 35-37):**
 
