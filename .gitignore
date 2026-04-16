@@ -1,6 +1,7 @@
 data/
 credentials.txt
 institution_config.txt
+Bibliographic Record AI Prompt Generator.lnk
 
 __pycache__/
 *.py[cod]
