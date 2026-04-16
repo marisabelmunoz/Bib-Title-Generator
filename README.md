@@ -1,5 +1,8 @@
 # Bibliographic Record AI Prompt Generator
 
+## Issues known:
+- sometimes, no matter how strcit, AI still gives the wrong count of characters for 008. When this happens, just feed AI the error you got on the screen and it should correct it. You can also do it manually by verifying any extra space fore the language fields.
+
 ## Usage:
 
 1. download and extract the code to a permanent location where it will live. (If it moves you will need to run install again)
