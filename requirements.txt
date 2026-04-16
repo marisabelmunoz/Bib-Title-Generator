@@ -1,0 +1,4 @@
+flask>=3.0
+requests>=2.31
+cryptography>=42.0
+pywin32==306; sys_platform == 'win32'

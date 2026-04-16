@@ -1,5 +1,6 @@
 data/
-*.txt
+credentials.txt
+institution_config.txt
 
 __pycache__/
 *.py[cod]
