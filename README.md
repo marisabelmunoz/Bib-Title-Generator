@@ -7,6 +7,7 @@
 3. Wait for the dependencies to install.
 4. Once the shortcut is created, **drag it to Desktop or taskbar** as you wish.
 5. Double click and the browser will automatically open
+6. For setting up the API, please read the **about** page.
 
 See the About page for more information.
 
