@@ -1,0 +1,13 @@
+data/
+*.txt
+
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+env/
+.env
+
+.DS_Store
+Thumbs.db

@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Marc21 Cataloguing Tool{% endblock %}
+
+{% block content %}
+    <div class="content-col">
+
+      <section class="card" id="step-prompt">
+        <div class="card-header">
+          <span class="step-badge">1</span>
+          <h2>Set 008 Fields & Metadata</h2>
+        </div>
+        <div class="card-body">
+          <div class="field-grid">
+
+            <div class="field-group" style="grid-column: span 2;">
+              <label for="cat_lang" class="field-label">Language of Cataloging</label>
+              <select id="cat_lang" class="select-field">
+                <option value="eng">English (eng)</option>
+                <option value="dut">Dutch (dut / nl)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="biography" class="field-label">008/34 — Biography</label>
+              <select id="biography" class="select-field">
+                <option value=" ">No biographical information ( )</option>
+                <option value="a">Autobiography (a)</option>
+                <option value="b">Individual biography (b)</option>
+                <option value="c">Collective biography (c)</option>
+                <option value="d">Contains biographical information (d)</option>
+                <option value="e">Biographical sketches (e)</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label for="index" class="field-label">008/31 — Index</label>
+              <select id="index" class="select-field">
+                <option value="0">No index (0)</option>
+                <option value="1">Index present (1)</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label for="year" class="field-label">Publication Year</label>
+              <input type="text" id="year" class="input-field" placeholder="2025" maxlength="4" />
+            </div>
+
+            <div class="field-group">
+              <label for="place" class="field-label">Place (008/15-17)</label>
+              <input type="text" id="place" class="input-field" placeholder="ne" maxlength="3" />
+            </div>
+
+            <div class="field-group">
+              <label for="isbn" class="field-label">ISBN</label>
+              <input type="text" id="isbn" class="input-field" placeholder="e.g. 978..." />
+            </div>
+
+            <div class="field-group">
+              <label for="format_book" class="field-label">Format</label>
+              <input type="text" id="format_book" class="input-field" placeholder="e.g. hardcover, paperback" />
+            </div>
+
+            <div class="field-group" style="grid-column: span 2;">
+              <label for="description" class="field-label">Book Information / Metadata</label>
+              <textarea id="description" class="textarea-field" rows="5"
+                placeholder="Paste title, author, summary, and TOC here..."></textarea>
+            </div>
+
+          </div>
+
+<div class="field-group" style="grid-column: span 2;margin-top: 2rem;">
+  <label for="extra-instructions" class="field-label">Extra Instructions for AI</label>
+  <textarea id="extra-instructions" class="textarea-field" rows="3"
+    placeholder="  The prompt covers most basics for a Bibliographic Record, but if there is anything specific, please clarify here.
+ e.g. Include specific 650 tags, focus on the summary, etc."></textarea>
+</div>
+
+          <div class="card-actions">
+            <button id="btn-generate" class="btn btn-primary">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2v-2M16 4h2a2 2 0 012 2v4M16 4l1 1" />
+                <rect x="8" y="2" width="8" height="4" rx="1" />
+                <path d="M21 14l-3 3h-7l-3-3" />
+              </svg>
+              Copy Prompt for AI
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="step-submit">
+        <div class="card-header">
+          <span class="step-badge">2</span>
+          <h2>Paste MARCXML from AI</h2>
+        </div>
+        <div class="card-body">
+          <div class="field-group">
+            <label for="marcxml-input" class="field-label">MARCXML Output</label>
+            <textarea id="marcxml-input" class="textarea-field font-mono" rows="12"
+              placeholder='<record xmlns="http://www.loc.gov/MARC21/slim">...'></textarea>
+          </div>
+
+          <div class="card-actions">
+            <button id="btn-submit" class="btn btn-success">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v13" />
+              </svg>
+              Create Record in WorldCat
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card hidden" id="step-result">
+        <div class="card-header">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h2>Submission Status</h2>
+        </div>
+        <div id="result-body" class="card-body"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="loading-overlay" class="overlay hidden">
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <p id="loading-text">Processing...</p>
+    </div>
+  </div>
+
+  <script>
+    const currentYear = new Date().getFullYear();
+    document.getElementById("year").value = currentYear;
+
+    // ── Generate & Copy Prompt ───────────────────────────────────────────────
+    document.getElementById("btn-generate").addEventListener("click", async () => {
+      const biography = document.getElementById("biography").value;
+      const cat_lang = document.getElementById("cat_lang").value;
+      const index = document.getElementById("index").value;
+      const year = document.getElementById("year").value.trim() || currentYear;
+      const place = document.getElementById("place").value.trim() || "ne";
+      const isbn = document.getElementById("isbn").value.trim();
+      const format_book = document.getElementById("format_book").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const extra_instructions = document.getElementById("extra-instructions").value.trim();
+      
+
+      showLoading(true, "Generating Prompt...");
+
+      try {
+        const res = await fetch("/generate-prompt", {
+        // Error: Unexpected token '<', "<!doctype "... is not valid JSON
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ biography, index, year, place, isbn, format_book, description, cat_lang, extra_instructions }),
+        });
+        const data = await res.json();
+
+        if (data.prompt) {
+          await navigator.clipboard.writeText(data.prompt);
+          const btn = document.getElementById("btn-generate");
+          btn.innerHTML = "✓ Prompt Copied!";
+          setTimeout(() => { btn.innerHTML = "Copy Prompt for AI"; }, 2000);
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    // ── Submit to OCLC ───────────────────────────────────────────────────────
+    document.getElementById("btn-submit").addEventListener("click", async () => {
+      const marcxml = document.getElementById("marcxml-input").value.trim();
+
+      if (!marcxml) {
+        alert("Please paste the MARCXML record first.");
+        return;
+      }
+
+      showLoading(true, "Submitting to OCLC WMS...");
+
+      try {
+        const res = await fetch("/submit-marc", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ marcxml }),
+        });
+
+        const data = await res.json();
+        showLoading(false);
+
+        if (data.error) {
+          showResult("error", `<strong>Error:</strong> ${data.error}<br><small>${data.detail || ""}</small>`);
+        } else if (data.ocn) {
+          showResult("success", `
+            <strong>Success!</strong> Record created.<br>
+            OCN: <strong>${data.ocn}</strong><br><br>
+            <a href="${data.edit_url}" target="_blank" class="btn btn-outline btn-sm">
+              Open in WorldCat Metadata
+            </a>
+          `);
+        } else {
+          showResult("warn", "Record submitted, but the OCN could not be parsed from the response.");
+        }
+      } catch (err) {
+        showLoading(false);
+        showResult("error", "Network error: " + err.message);
+      }
+    });
+
+    function showResult(type, html) {
+      const section = document.getElementById("step-result");
+      const body = document.getElementById("result-body");
+      section.classList.remove("hidden");
+      body.innerHTML = `<div class="result-msg result-${type}">${html}</div>`;
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function showLoading(on, text = "") {
+      const overlay = document.getElementById("loading-overlay");
+      if (on) {
+        document.getElementById("loading-text").textContent = text;
+        overlay.classList.remove("hidden");
+      } else {
+        overlay.classList.add("hidden");
+      }
+    }
+  </script>
+    {% endblock %}

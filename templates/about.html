@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+    <div class="content-col">
+        <section class="card">
+            <div class="card-header">Contact & Development</div>
+            <div class="card-body">
+                <p><strong>Developer:</strong> Marisabel Munoz</p>
+                <p><strong>Email:</strong> <a href="mailto:Marisabel.munoz@eur.nl">Marisabel.munoz@eur.nl</a></p>
+                <p><strong>Department:</strong> Metadata Services, Erasmus University Library</p>
+                <hr>
+                <p><strong>Credits:</strong> This tool was developed using <strong>Claude AI</strong> and
+                    fine-tuned/debugged using <strong>Gemini AI</strong>.</p>
+            </div>
+        </section>
+
+    
+        <section class="card">
+  <div class="card-header">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+    </svg>
+    How to Use: The Cataloging Workflow
+  </div>
+  <div class="card-body">
+    <div class="workflow-container">
+      
+      <div class="workflow-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <p><strong>Prepare Metadata:</strong> Gather all necessary text to catalogue. Use a proper, reliable source such as the <strong>official publishing website</strong> for the description and Table of Contents.</p>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <p><strong>Generate Prompt:</strong> Enter the details into the Catalog tab and click "Generate Prompt." The structured MARC21 instructions will be <strong>automatically copied to your clipboard</strong>.</p>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <p><strong>AI Processing:</strong> Paste the prompt from your clipboard into your preferred AI (Claude, Gemini, or ChatGPT). The AI will generate the raw MARCXML code based on the strict constraints provided.</p>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <p><strong>Verify & Submit:</strong> Copy the MARCXML provided by the AI and paste it back into the "MARCXML Output" box in this tool. Review the data for any errors, then click "Submit to WorldCat."</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+        <section class="card">
+            <div class="card-header">Technical Resources</div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>OCLC API:</strong> <a href="https://developer.api.oclc.org/wc-metadata-v2#/"
+                            target="_blank">WorldCat Metadata API v2</a></li>
+                    <li><strong>API Access:</strong> <a href="https://platform.worldcat.org/wskey/"
+                            target="_blank">Request a WSKey here</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">Security & Encryption</div>
+            <div class="card-body">
+                <p>To protect your institution's API secrets, this application encrypts your Client ID and Secret before
+                    saving them to disk using <strong>Fernet (AES-128)</strong> symmetric encryption.</p>
+
+                <div style="background: #fff4f4; border-left: 4px solid #cc0000; padding: 1rem; margin-top: 1rem;">
+                    <strong>⚠️ Critical: Changing the Encryption Key</strong>
+                    <p>If you wish to change the security key, you <strong>must</strong> do so before saving any
+                        credentials in the Configuration tab. If you change the key after saving credentials, the app
+                        will no longer be able to read your old credentials.</p>
+                    <p>To change the key, open <code>handlers/config.py</code> and modify the <code>SECRET_KEY</code>
+                        variable:</p>
+                    In the terminal:</br>
+                    <code>python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key())"</code></br>
+                    Then copy the key here:</br>
+                    <code>SECRET_KEY = b'Your-New-32-Byte-Base64-Key='</code>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" style="border-top: 4px solid #95a5a6; background-color: #fcfcfc;">
+            <div class="card-header" style="color: #34495e;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                    style="margin-right: 8px; vertical-align: middle;">
+                    <path
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Disclaimer: AI Usage & Data Accuracy
+            </div>
+            <div class="card-body" style="font-size: 0.85rem; color: #5a6673; line-height: 1.5;">
+                <p style="margin-top: 0;"><strong>Workflow Notice:</strong> This tool generates a structured prompt
+                    designed to be copied and processed by your preferred AI (e.g., Claude, Gemini, ChatGPT). The
+                    application does not generate the MARC record directly.</p>
+
+                <ul style="padding-left: 20px;">
+                    <li><strong>AI Limitations:</strong> Even with strict constraints and instructions provided in the
+                        prompt to prevent "hallucinations," AI models may still produce incorrect formatting, invalid
+                        subject headings, or non-existent URIs.</li>
+                    <li><strong>Mandatory Review:</strong> It is the user's responsibility to review the AI's output for
+                        accuracy and MARC21 compliance before pasting it back into this tool for OCLC submission.</li>
+                    <li><strong>No Direct Connection:</strong> This application has no control over the privacy policies
+                        or the internal logic of the external AI service you choose to use.</li>
+                </ul>
+
+                <p style="margin-bottom: 0; font-style: italic; border-top: 1px solid #eee; padding-top: 10px;">
+                    <strong>Note:</strong> While the prompt is optimized to minimize errors, the AI's response is
+                    probabilistic. The cataloger remains the final authority on all metadata submitted to WorldCat.
+                </p>
+            </div>
+        </section>
+    </div>
+    {% endblock %}
