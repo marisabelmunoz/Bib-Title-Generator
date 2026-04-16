@@ -129,10 +129,20 @@ Where:
 | 34    | `[BIO]` | YOU ANALYZE |
 | 35-37 | `[LANGCODE]` | YOU ANALYZE |
 | 38    | space | FIXED |
-| 39    | `d` | FIXED - Other cataloging source | ALWAYS INCLUDE THIS AT THE END!
+| 39    | `d` | FIXED - Other cataloging source | ALWAYS INCLUDE THIS AT THE END! DO NOT CHANGE IT!
 
 **Length verification:** Count each position including spaces above. Total = 40 characters, not less, nor more!
 YYMMDDsYYYY____xx_____r______###_#_lan__d
+
+CRITICAL: Verify before proceding:
+1. The date is in YYMMDD format and is exactly 6 characters.
+2. The publication year is exactly 4 characters.
+3. The place code is exactly 3 characters.
+4. The index value is either '0' or '1'.
+5. The literary form and biography codes are single characters.
+6. The language code is exactly 3 characters.
+7. The cataloguing source code 'd' is at the end.
+8. The total length is exactly 40 characters.
 
 **Determining 008 Language Code (positions 35-37):**
 
