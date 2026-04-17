@@ -60,19 +60,17 @@
               <input type="text" id="format_book" class="input-field" placeholder="e.g. hardcover, paperback" />
             </div>
 
-            <div class="field-group" style="grid-column: span 2;">
-              <label for="description" class="field-label">Book Information / Metadata</label>
-              <textarea id="description" class="textarea-field" rows="5"
-                placeholder="Paste title, author, summary, and TOC here..."></textarea>
-            </div>
+  <div class="field-group" style="grid-column: span 2;">
+  <label for="description" class="field-label">Book Information / Metadata</label>
+  <div class="field-hint"> book title, author, summary, page count, dimensions, special markings, or any other details you have. You can use structured fields (e.g., "Title: ...") but free text is fine.</div>
+  
+  <textarea id="description" class="textarea-field" rows="5" placeholder="e.g., 'The Great Gatsby, F. Scott Fitzgerald, 180 pages, first edition'"></textarea>
+</div>
 
-          </div>
-
-<div class="field-group" style="grid-column: span 2;margin-top: 2rem;">
+<div class="field-group" style="grid-column: span 2; margin-top: 2rem;">
   <label for="extra-instructions" class="field-label">Extra Instructions for AI</label>
-  <textarea id="extra-instructions" class="textarea-field" rows="3"
-    placeholder="The prompt covers most basics for a Bibliographic Record, but if there is anything specific, please clarify here.
- e.g. Include specific 650 tags, focus on the summary, etc. Also, SUBJECT HEADINGS might and might not be generated, you can control that by asking here."></textarea>
+  <div class="field-hint">Override or add to the default prompt. Control subject headings, specify MARC tags, or focus on certain metadata.</div>
+  <textarea id="extra-instructions" class="textarea-field" rows="3" placeholder="Example: 'Include 650 tags for Victorian literature, but no subject headings for geography.'"></textarea>
 </div>
 
           <div class="card-actions">

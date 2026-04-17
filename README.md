@@ -220,3 +220,5 @@ Format: {format_book if isbn else "no isbn tag to include this, ignore"}
 **Return only the MARCXML record in a code block to copy.**
 ```
 
+## Todo
+- [rda relators](https://help-nl.oclc.org/Metadata_Services/GGC/Richtlijnen/RDA_-_Resource_Description_and_Access/Relatiecodes_-_Algemene_inleiding/5.Engelse_en_Nederlandse_betekenis_van_relatiecodes_en_toelichting) - add to instructions to use this for person

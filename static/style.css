@@ -487,6 +487,12 @@ hr.divider {
   margin-top: 0.25rem;
 }
 
+.field-hint {
+  font-size: 0.75rem;
+  color: var(--warn);
+  margin-bottom: 0.25rem;
+}
+
 /* ── Alerts ───────────────────────────────────────────────────────────────── */
 .alert {
   display: flex;

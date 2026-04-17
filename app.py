@@ -130,6 +130,14 @@ def submit_marc():
                 "edit_url": f"https://eur.share.worldcat.org/wms/cmnd/metadata/cataloging/edit/bib/{ocn}"
             })
         
+        # Added specific message for 400 responses
+        if status_code == 400:
+            return jsonify({
+                "error": f"OCLC Error {status_code} - Bad Request",
+                "message": "AI can make mistakes in the MARCXML. Please review the generated record. You can also feed error to AI to correct.",
+                "detail": response_text[:500]
+            }), 400
+        
         return jsonify({
             "error": f"OCLC Error {status_code}", 
             "detail": response_text[:500]
