@@ -3,229 +3,965 @@
 {% block title %}Marc21 Cataloguing Tool{% endblock %}
 
 {% block content %}
-    <div class="content-col">
 
-      <section class="card" id="step-prompt">
-        <div class="card-header">
-          <span class="step-badge">1</span>
-          <h2>Set 008 Fields & Metadata</h2>
-        </div>
-        <div class="card-body">
-          <div class="field-grid">
+<style>
+  /* ── 008 Builder ──────────────────────────────────────────────── */
+  .builder-008 {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border, #dde3ec);
+    border-radius: 8px;
+    overflow: hidden;
+  }
 
-            <div class="field-group" style="grid-column: span 2;">
-              <label for="cat_lang" class="field-label">Language of Cataloging</label>
-              <select id="cat_lang" class="select-field">
-                <option value="eng">English (eng)</option>
-                <option value="dut">Dutch (dut / nl)</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <label for="biography" class="field-label">008/34 — Biography</label>
-              <select id="biography" class="select-field">
-                <option value=" ">No biographical information ( )</option>
-                <option value="a">Autobiography (a)</option>
-                <option value="b">Individual biography (b)</option>
-                <option value="c">Collective biography (c)</option>
-                <option value="d">Contains biographical information (d)</option>
-                <option value="e">Biographical sketches (e)</option>
-              </select>
-            </div>
+  .builder-008-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .65rem 1rem;
+    background: var(--surface-alt, #f4f6fb);
+    border-bottom: 1px solid var(--border, #dde3ec);
+    gap: .75rem;
+  }
 
-            <div class="field-group">
-              <label for="index" class="field-label">008/31 — Index</label>
-              <select id="index" class="select-field">
-                <option value="0">No index (0)</option>
-                <option value="1">Index present (1)</option>
-              </select>
-            </div>
+  .builder-008-label {
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text-muted, #6b7280);
+    white-space: nowrap;
+  }
 
-            <div class="field-group">
-              <label for="year" class="field-label">Publication Year</label>
-              <input type="text" id="year" class="input-field" placeholder="2025" maxlength="4" />
-            </div>
+  .btn-edit-008 {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .3rem .75rem;
+    font-size: .82rem;
+    font-weight: 500;
+    border: 1px solid var(--border, #dde3ec);
+    border-radius: 5px;
+    background: var(--surface, #fff);
+    color: var(--text, #1f2937);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s, border-color .15s;
+    flex-shrink: 0;
+  }
+  .btn-edit-008:hover { background: var(--surface-alt, #f4f6fb); border-color: var(--primary, #4f46e5); }
+  .btn-edit-008.active { background: var(--primary, #4f46e5); color: #fff; border-color: var(--primary, #4f46e5); }
 
-            <div class="field-group">
-              <label for="place" class="field-label">Place (008/15-17)</label>
-              <input type="text" id="place" class="input-field" placeholder="ne" maxlength="3" />
-            </div>
+  /* Character strip */
+  .chars-008-wrap {
+    overflow-x: auto;
+    padding: .6rem .8rem .4rem;
+    background: var(--surface, #fff);
+  }
 
-            <div class="field-group">
-              <label for="isbn" class="field-label">ISBN</label>
-              <input type="text" id="isbn" class="input-field" placeholder="e.g. 978..." />
-            </div>
+  .chars-008-row {
+    display: flex;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    user-select: none;
+    min-width: max-content;
+  }
 
-            <div class="field-group">
-              <label for="format_book" class="field-label">Format</label>
-              <input type="text" id="format_book" class="input-field" placeholder="e.g. hardcover, paperback" />
-            </div>
+  .c008 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 20px;
+    min-width: 20px;
+    padding: 2px 0;
+    border-top: 2px solid transparent;
+    transition: border-color .15s;
+  }
+  .c008:first-child { border-radius: 3px 0 0 0; }
+  .c008:last-child  { border-radius: 0 3px 0 0; }
 
-  <div class="field-group" style="grid-column: span 2;">
-  <label for="description" class="field-label">Book Information / Metadata</label>
-  <div class="field-hint"> book title, author, summary, page count, dimensions, special markings, or any other details you have. You can use structured fields (e.g., "Title: ...") but free text is fine.</div>
-  
-  <textarea id="description" class="textarea-field" rows="5" placeholder="e.g., 'The Great Gatsby, F. Scott Fitzgerald, 180 pages, first edition'"></textarea>
-</div>
+  /* Field-region colours (uses CSS custom props with fallback) */
+  .c008.rg-date-in   { border-color: #6366f1; background: #eef2ff; }
+  .c008.rg-type-date { border-color: #0891b2; background: #ecfeff; }
+  .c008.rg-date1     { border-color: #16a34a; background: #f0fdf4; }
+  .c008.rg-date2     { border-color: #65a30d; background: #f7fee7; }
+  .c008.rg-place     { border-color: #d97706; background: #fffbeb; }
+  .c008.rg-illus     { border-color: #9333ea; background: #faf5ff; }
+  .c008.rg-audience  { border-color: #db2777; background: #fdf2f8; }
+  .c008.rg-form      { border-color: #db2777; background: #fdf2f8; }
+  .c008.rg-noc       { border-color: #dc2626; background: #fff5f5; }
+  .c008.rg-govt      { border-color: #64748b; background: #f8fafc; }
+  .c008.rg-conf      { border-color: #64748b; background: #f8fafc; }
+  .c008.rg-fest      { border-color: #64748b; background: #f8fafc; }
+  .c008.rg-index     { border-color: #ca8a04; background: #fefce8; }
+  .c008.rg-undef     { border-color: #cbd5e1; background: #f8fafc; }
+  .c008.rg-litform   { border-color: #4f46e5; background: #eef2ff; }
+  .c008.rg-bio       { border-color: #7c3aed; background: #f5f3ff; }
+  .c008.rg-lang      { border-color: #0284c7; background: #f0f9ff; }
+  .c008.rg-modified  { border-color: #64748b; background: #f8fafc; }
+  .c008.rg-catsrc    { border-color: #475569; background: #f1f5f9; }
 
-<div class="field-group" style="grid-column: span 2; margin-top: 2rem;">
-  <label for="extra-instructions" class="field-label">Extra Instructions for AI</label>
-  <div class="field-hint">Override or add to the default prompt. Control subject headings, specify MARC tags, or focus on certain metadata.</div>
-  <textarea id="extra-instructions" class="textarea-field" rows="3" placeholder="Example: 'Include 650 tags for Victorian literature, but no subject headings for geography.'"></textarea>
-</div>
+  .c008 .cv {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text, #1f2937);
+  }
+  .c008 .cv.is-space { color: #94a3b8; }
 
-          <div class="card-actions">
-            <button id="btn-generate" class="btn btn-primary">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2v-2M16 4h2a2 2 0 012 2v4M16 4l1 1" />
-                <rect x="8" y="2" width="8" height="4" rx="1" />
-                <path d="M21 14l-3 3h-7l-3-3" />
-              </svg>
-              Copy Prompt for AI
+  .c008 .cp {
+    font-size: 8px;
+    line-height: 1.1;
+    color: #94a3b8;
+    margin-top: 1px;
+  }
+
+  /* Region legend */
+  .region-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem .75rem;
+    padding: .4rem .8rem .6rem;
+    background: var(--surface, #fff);
+    border-top: 1px solid var(--border, #dde3ec);
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .72rem;
+    color: var(--text-muted, #6b7280);
+  }
+  .legend-dot {
+    width: 9px; height: 9px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Edit panel */
+  .panel-008 {
+    border-top: 1px solid var(--border, #dde3ec);
+    background: var(--surface, #fff);
+    padding: 1.25rem 1rem 1rem;
+    display: none;
+  }
+  .panel-008.open { display: block; }
+
+  .p008-section-title {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-muted, #6b7280);
+    margin: 1rem 0 .5rem;
+    padding-bottom: .25rem;
+    border-bottom: 1px solid var(--border, #dde3ec);
+  }
+  .p008-section-title:first-child { margin-top: 0; }
+
+  .p008-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .6rem 1rem;
+  }
+  .p008-grid.wide {
+    grid-template-columns: 1fr;
+  }
+
+  .p008-field { display: flex; flex-direction: column; gap: .2rem; }
+  .p008-field label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text, #1f2937);
+    display: flex;
+    align-items: baseline;
+    gap: .35rem;
+  }
+  .p008-pos {
+    font-size: .68rem;
+    font-family: monospace;
+    color: var(--text-muted, #6b7280);
+    background: var(--surface-alt, #f4f6fb);
+    border: 1px solid var(--border, #dde3ec);
+    border-radius: 3px;
+    padding: 0 4px;
+  }
+  .p008-hint {
+    font-size: .72rem;
+    color: var(--text-muted, #6b7280);
+    line-height: 1.35;
+  }
+
+  .p008-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem .6rem;
+  }
+  .p008-cb {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    font-size: .78rem;
+    color: var(--text, #1f2937);
+    cursor: pointer;
+  }
+  .p008-cb input { cursor: pointer; }
+  .p008-cb.disabled { opacity: .4; pointer-events: none; }
+
+  .p008-max-note {
+    font-size: .7rem;
+    color: #d97706;
+    margin-top: .2rem;
+  }
+
+  /* Validation badge */
+  .badge-008 {
+    font-size: .72rem;
+    font-weight: 600;
+    padding: .15rem .5rem;
+    border-radius: 4px;
+    margin-left: .5rem;
+  }
+  .badge-008.ok  { background: #dcfce7; color: #15803d; }
+  .badge-008.err { background: #fee2e2; color: #b91c1c; }
+</style>
+
+  <div class="content-col">
+
+    <!-- ── Step 1 ─────────────────────────────────────────────────────────── -->
+    <section class="card" id="step-prompt">
+      <div class="card-header">
+        <span class="step-badge">1</span>
+        <h2>008 Builder &amp; Metadata</h2>
+      </div>
+      <div class="card-body">
+
+        <!-- ══ 008 Builder ═══════════════════════════════════════════════════ -->
+        <div class="builder-008">
+
+          <!-- Header row -->
+          <div class="builder-008-header">
+            <span class="builder-008-label">
+              008 Fixed Field
+              <span class="badge-008 ok" id="badge-008">40 ✓</span>
+            </span>
+            <button type="button" class="btn-edit-008" id="btn-edit-008">
+              ✏ Edit
             </button>
           </div>
-        </div>
-      </section>
 
-      <section class="card" id="step-submit">
-        <div class="card-header">
-          <span class="step-badge">2</span>
-          <h2>Paste MARCXML from AI</h2>
-        </div>
-        <div class="card-body">
+          <!-- Character strip -->
+          <div class="chars-008-wrap">
+            <div class="chars-008-row" id="chars-008-row">
+              <!-- filled by JS -->
+            </div>
+          </div>
+
+          <!-- Region legend -->
+          <div class="region-legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#6366f1"></span>00-05 date entered</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#0891b2"></span>06 type</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>07-10 year</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#65a30d"></span>11-14 date2</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#d97706"></span>15-17 place</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#9333ea"></span>18-21 illus</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#db2777"></span>22-23 aud/form</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>24-27 contents</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#64748b"></span>28-30 gov/conf/fest</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#ca8a04"></span>31 index</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#4f46e5"></span>33 litform</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span>34 bio</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#0284c7"></span>35-37 lang</span>
+          </div>
+
+          <!-- Edit panel -->
+          <div class="panel-008" id="panel-008">
+
+            <!-- DATES -->
+            <div class="p008-section-title">Dates</div>
+            <div class="p008-grid">
+
+              <div class="p008-field">
+                <label>
+                  Type of date
+                  <span class="p008-pos">06</span>
+                </label>
+                <select id="p008-tod" class="select-field">
+                  <option value="s">s — Single known date</option>
+                  <option value="m">m — Multiple dates</option>
+                  <option value="r">r — Reprint/reissue + original date</option>
+                  <option value="t">t — Publication date and copyright date</option>
+                  <option value="q">q — Questionable date</option>
+                  <option value="n">n — Dates unknown</option>
+                  <option value="c">c — Continuing resource currently published</option>
+                  <option value="d">d — Continuing resource ceased publication</option>
+                  <option value="e">e — Detailed date</option>
+                  <option value="i">i — Inclusive dates of collection</option>
+                  <option value="k">k — Range of years, bulk of collection</option>
+                  <option value="p">p — Distribution date differs from production</option>
+                  <option value="b">b — B.C. date involved</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Date 1 — Publication year
+                  <span class="p008-pos">07-10</span>
+                </label>
+                <input type="text" id="p008-date1" class="input-field font-mono"
+                  maxlength="4" placeholder="2026" />
+                <span class="p008-hint">4-digit year. Use 'u' for unknown digits (e.g. 19uu).</span>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Date 2
+                  <span class="p008-pos">11-14</span>
+                </label>
+                <input type="text" id="p008-date2" class="input-field font-mono"
+                  maxlength="4" placeholder="    " />
+                <span class="p008-hint">Leave blank for single-date items. Use 9999 for active serials.</span>
+              </div>
+
+            </div><!-- /dates grid -->
+
+            <!-- PLACE -->
+            <div class="p008-section-title">Place of Publication</div>
+            <div class="p008-grid">
+
+              <div class="p008-field">
+                <label>
+                  Place code
+                  <span class="p008-pos">15-17</span>
+                </label>
+                <input type="text" id="p008-place" class="input-field font-mono"
+                  maxlength="3" placeholder="ne " />
+                <span class="p008-hint">
+                  2- or 3-char LOC country code, space-padded to 3 chars.
+                  Common: ne · xxu · xxk · gw · fr · be
+                  — <a href="https://www.loc.gov/marc/countries/countries_code.html" target="_blank">full list</a>
+                </span>
+              </div>
+
+            </div>
+
+            <!-- PHYSICAL -->
+            <div class="p008-section-title">Physical Description</div>
+            <div class="p008-grid">
+
+              <div class="p008-field" style="grid-column: 1 / -1;">
+                <label>
+                  Illustrations
+                  <span class="p008-pos">18-21</span>
+                </label>
+                <span class="p008-hint" style="margin-bottom:.35rem;">Select up to 4 — codes are packed left to right into positions 18-21.</span>
+                <div class="p008-checkboxes" id="ill-checks">
+                  <!-- filled by JS -->
+                </div>
+                <div class="p008-max-note hidden" id="ill-max-note">⚠ Maximum 4 illustrations codes selected.</div>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Target audience
+                  <span class="p008-pos">22</span>
+                </label>
+                <select id="p008-audience" class="select-field">
+                  <option value=" ">  — Unknown or not specified</option>
+                  <option value="e" selected>e — Adult</option>
+                  <option value="a">a — Preschool</option>
+                  <option value="b">b — Primary</option>
+                  <option value="c">c — Pre-adolescent</option>
+                  <option value="d">d — Adolescent</option>
+                  <option value="f">f — Specialized</option>
+                  <option value="g">g — General</option>
+                  <option value="j">j — Juvenile</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Form of item
+                  <span class="p008-pos">23</span>
+                </label>
+                <select id="p008-form" class="select-field">
+                  <option value=" " selected>  — None of the following (regular print)</option>
+                  <option value="a">a — Microfilm</option>
+                  <option value="b">b — Microfiche</option>
+                  <option value="c">c — Microopaque</option>
+                  <option value="d">d — Large print</option>
+                  <option value="e">e — Newspaper format</option>
+                  <option value="f">f — Braille</option>
+                  <option value="o">o — Online</option>
+                  <option value="q">q — Direct electronic</option>
+                  <option value="r">r — Regular print reproduction</option>
+                  <option value="s">s — Electronic</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+            </div><!-- /physical grid -->
+
+            <!-- CONTENT -->
+            <div class="p008-section-title">Content Characteristics</div>
+            <div class="p008-grid">
+
+              <div class="p008-field" style="grid-column: 1 / -1;">
+                <label>
+                  Nature of contents
+                  <span class="p008-pos">24-27</span>
+                </label>
+                <span class="p008-hint" style="margin-bottom:.35rem;">Select up to 4 — packed left to right into positions 24-27.</span>
+                <div class="p008-checkboxes" id="noc-checks">
+                  <!-- filled by JS -->
+                </div>
+                <div class="p008-max-note hidden" id="noc-max-note">⚠ Maximum 4 nature-of-contents codes selected.</div>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Government publication
+                  <span class="p008-pos">28</span>
+                </label>
+                <select id="p008-govt" class="select-field">
+                  <option value=" " selected>  — Not a government publication</option>
+                  <option value="a">a — Autonomous/semi-autonomous body</option>
+                  <option value="c">c — Multilocal</option>
+                  <option value="f">f — Federal/national</option>
+                  <option value="i">i — International intergovernmental</option>
+                  <option value="l">l — Local</option>
+                  <option value="m">m — Multistate</option>
+                  <option value="o">o — Level unspecified</option>
+                  <option value="s">s — State/provincial/territorial</option>
+                  <option value="u">u — Unknown</option>
+                  <option value="z">z — Other</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Conference publication
+                  <span class="p008-pos">29</span>
+                </label>
+                <select id="p008-conf" class="select-field">
+                  <option value="0" selected>0 — Not a conference publication</option>
+                  <option value="1">1 — Conference publication</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Festschrift
+                  <span class="p008-pos">30</span>
+                </label>
+                <select id="p008-fest" class="select-field">
+                  <option value="0" selected>0 — Not a festschrift</option>
+                  <option value="1">1 — Festschrift</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Index
+                  <span class="p008-pos">31</span>
+                </label>
+                <select id="p008-index" class="select-field">
+                  <option value="0" selected>0 — No index</option>
+                  <option value="1">1 — Index present</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+            </div><!-- /content grid -->
+
+            <!-- LITERARY CLASSIFICATION -->
+            <div class="p008-section-title">Literary Classification</div>
+            <div class="p008-grid">
+
+              <div class="p008-field">
+                <label>
+                  Literary form
+                  <span class="p008-pos">33</span>
+                </label>
+                <select id="p008-litform" class="select-field">
+                  <option value="0" selected>0 — Not fiction</option>
+                  <option value="1">1 — Fiction (general)</option>
+                  <option value="f">f — Novels</option>
+                  <option value="j">j — Short stories</option>
+                  <option value="p">p — Poetry</option>
+                  <option value="d">d — Dramas</option>
+                  <option value="e">e — Essays</option>
+                  <option value="h">h — Humor, satire</option>
+                  <option value="i">i — Letters</option>
+                  <option value="m">m — Mixed forms</option>
+                  <option value="s">s — Speeches</option>
+                  <option value="u">u — Unknown</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+                <span class="p008-hint">Biographies → use <strong>0 (Not fiction)</strong>; set Biography field separately.</span>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Biography
+                  <span class="p008-pos">34</span>
+                </label>
+                <select id="p008-bio" class="select-field">
+                  <option value=" " selected>  — No biographical information</option>
+                  <option value="a">a — Autobiography</option>
+                  <option value="b">b — Individual biography</option>
+                  <option value="c">c — Collective biography</option>
+                  <option value="d">d — Contains biographical information</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Language
+                  <span class="p008-pos">35-37</span>
+                </label>
+                <input type="text" id="p008-lang" class="input-field font-mono"
+                  maxlength="3" placeholder="dut" value="dut" />
+                <span class="p008-hint">
+                  Language of the <em>work content</em> (not cataloging language).
+                  Common: dut · eng · fre · ger · spa · ita · por · und
+                  — <a href="https://www.loc.gov/marc/languages/language_code.html" target="_blank">full list</a>
+                </span>
+              </div>
+
+            </div><!-- /literary grid -->
+
+            <!-- RECORD INFO -->
+            <div class="p008-section-title">Record Information</div>
+            <div class="p008-grid">
+
+              <div class="p008-field">
+                <label>
+                  Modified record
+                  <span class="p008-pos">38</span>
+                </label>
+                <select id="p008-modified" class="select-field">
+                  <option value=" " selected>  — Not modified</option>
+                  <option value="d">d — Dashed-on information omitted</option>
+                  <option value="o">o — Completely romanized</option>
+                  <option value="r">r — Romanized</option>
+                  <option value="s">s — Shortened</option>
+                  <option value="x">x — Missing characters</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+              <div class="p008-field">
+                <label>
+                  Cataloging source
+                  <span class="p008-pos">39</span>
+                </label>
+                <select id="p008-catsrc" class="select-field">
+                  <option value="d" selected>d — Other</option>
+                  <option value=" ">  — National bibliographic agency</option>
+                  <option value="c">c — Cooperative cataloging program</option>
+                  <option value="u">u — Unknown</option>
+                  <option value="|">| — No attempt to code</option>
+                </select>
+              </div>
+
+            </div><!-- /record grid -->
+
+          </div><!-- /panel-008 -->
+        </div><!-- /builder-008 -->
+
+        <!-- ══ Rest of metadata ══════════════════════════════════════════════ -->
+        <div class="field-grid">
+
+          <div class="field-group" style="grid-column: span 2;">
+            <label for="cat_lang" class="field-label">Language of Cataloging</label>
+            <select id="cat_lang" class="select-field">
+              <option value="eng">English (eng)</option>
+              <option value="dut">Dutch (dut / nl)</option>
+            </select>
+          </div>
+
           <div class="field-group">
-            <label for="marcxml-input" class="field-label">MARCXML Output</label>
-            <textarea id="marcxml-input" class="textarea-field font-mono" rows="12"
-              placeholder='<record xmlns="http://www.loc.gov/MARC21/slim">...'></textarea>
+            <label for="isbn" class="field-label">ISBN</label>
+            <input type="text" id="isbn" class="input-field" placeholder="e.g. 978..." />
           </div>
 
-          <div class="card-actions">
-            <button id="btn-submit" class="btn btn-success">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v13" />
-              </svg>
-              Create Record in WorldCat
-            </button>
+          <div class="field-group">
+            <label for="format_book" class="field-label">Format</label>
+            <input type="text" id="format_book" class="input-field" placeholder="e.g. hardcover, paperback" />
           </div>
+
+          <div class="field-group" style="grid-column: span 2;">
+            <label for="description" class="field-label">Book Information / Metadata</label>
+            <div class="field-hint">Book title, author, summary, page count, dimensions, special markings, or any other details you have. Free text is fine.</div>
+            <textarea id="description" class="textarea-field" rows="5"
+              placeholder="e.g., 'The Great Gatsby, F. Scott Fitzgerald, 180 pages, first edition'"></textarea>
+          </div>
+
+          <div class="field-group" style="grid-column: span 2; margin-top: 2rem;">
+            <label for="extra-instructions" class="field-label">Extra Instructions for AI</label>
+            <div class="field-hint">Override or add to the default prompt. Control subject headings, specify MARC tags, or focus on certain metadata.</div>
+            <textarea id="extra-instructions" class="textarea-field" rows="3"
+              placeholder="Example: 'Include 650 tags for Victorian literature, but no subject headings for geography.'"></textarea>
+          </div>
+
+        </div><!-- /field-grid -->
+
+        <div class="card-actions">
+          <button id="btn-generate" class="btn btn-primary">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2v-2M16 4h2a2 2 0 012 2v4M16 4l1 1" />
+              <rect x="8" y="2" width="8" height="4" rx="1" />
+              <path d="M21 14l-3 3h-7l-3-3" />
+            </svg>
+            Copy Prompt for AI
+          </button>
         </div>
-      </section>
 
-      <section class="card hidden" id="step-result">
-        <div class="card-header">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h2>Submission Status</h2>
+      </div><!-- /card-body -->
+    </section><!-- /step-1 -->
+
+    <!-- ── Step 2 ─────────────────────────────────────────────────────────── -->
+    <section class="card" id="step-submit">
+      <div class="card-header">
+        <span class="step-badge">2</span>
+        <h2>Paste MARCXML from AI</h2>
+      </div>
+      <div class="card-body">
+        <div class="field-group">
+          <label for="marcxml-input" class="field-label">MARCXML Output</label>
+          <textarea id="marcxml-input" class="textarea-field font-mono" rows="12"
+            placeholder='<record xmlns="http://www.loc.gov/MARC21/slim">...'></textarea>
         </div>
-        <div id="result-body" class="card-body"></div>
-      </section>
 
-    </div>
-  </main>
+        <div class="card-actions">
+          <button id="btn-submit" class="btn btn-success">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v13" />
+            </svg>
+            Create Record in WorldCat
+          </button>
+        </div>
+      </div>
+    </section>
 
-  <div id="loading-overlay" class="overlay hidden">
-    <div class="spinner-container">
-      <div class="spinner"></div>
-      <p id="loading-text">Processing...</p>
-    </div>
+    <!-- ── Result ─────────────────────────────────────────────────────────── -->
+    <section class="card hidden" id="step-result">
+      <div class="card-header">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h2>Submission Status</h2>
+      </div>
+      <div id="result-body" class="card-body"></div>
+    </section>
+
+  </div><!-- /content-col -->
+</main>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="overlay hidden">
+  <div class="spinner-container">
+    <div class="spinner"></div>
+    <p id="loading-text">Processing...</p>
   </div>
+</div>
 
-  <script>
-    const currentYear = new Date().getFullYear();
-    document.getElementById("year").value = currentYear;
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   008 Builder — data tables
+═══════════════════════════════════════════════════════════════════════════ */
 
-    // ── Generate & Copy Prompt ───────────────────────────────────────────────
-    document.getElementById("btn-generate").addEventListener("click", async () => {
-      const biography = document.getElementById("biography").value;
-      const cat_lang = document.getElementById("cat_lang").value;
-      const index = document.getElementById("index").value;
-      const year = document.getElementById("year").value.trim() || currentYear;
-      const place = document.getElementById("place").value.trim() || "ne";
-      const isbn = document.getElementById("isbn").value.trim();
-      const format_book = document.getElementById("format_book").value.trim();
-      const description = document.getElementById("description").value.trim();
-      const extra_instructions = document.getElementById("extra-instructions").value.trim();
-      
+const ILL_OPTIONS = [
+  ["a","Illustrations"],["b","Maps"],["c","Portraits"],["d","Charts"],
+  ["e","Plans"],["f","Plates"],["g","Music"],["h","Facsimiles"],
+  ["i","Coats of arms"],["j","Genealogical tables"],["k","Forms"],
+  ["l","Samples"],["m","Phonodisc"],["o","Photographs"],["p","Illuminations"]
+];
 
-      showLoading(true, "Generating Prompt...");
+const NOC_OPTIONS = [
+  ["a","Abstracts/summaries"],["b","Bibliographies"],["c","Catalogs"],
+  ["d","Dictionaries"],["e","Encyclopedias"],["f","Handbooks"],
+  ["g","Legal articles"],["i","Indexes"],["j","Patent documents"],
+  ["k","Discographies"],["l","Legislation"],["m","Theses"],
+  ["n","Surveys of lit."],["o","Reviews"],["p","Programmed texts"],
+  ["q","Filmographies"],["r","Directories"],["s","Statistics"],
+  ["t","Technical reports"],["u","Standards"],["v","Legal cases"],
+  ["w","Law reports"],["y","Yearbooks"],["z","Treaties"],
+  ["2","Offprints"],["5","Calendars"],["6","Comics/graphic novels"]
+];
 
-      try {
-        const res = await fetch("/generate-prompt", {
-        // Error: Unexpected token '<', "<!doctype "... is not valid JSON
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ biography, index, year, place, isbn, format_book, description, cat_lang, extra_instructions }),
-        });
-        const data = await res.json();
+/* Region class for each of the 40 positions */
+const REGION = [
+  "rg-date-in","rg-date-in","rg-date-in","rg-date-in","rg-date-in","rg-date-in", // 00-05
+  "rg-type-date",                                                                   // 06
+  "rg-date1","rg-date1","rg-date1","rg-date1",                                     // 07-10
+  "rg-date2","rg-date2","rg-date2","rg-date2",                                     // 11-14
+  "rg-place","rg-place","rg-place",                                                 // 15-17
+  "rg-illus","rg-illus","rg-illus","rg-illus",                                     // 18-21
+  "rg-audience",                                                                    // 22
+  "rg-form",                                                                        // 23
+  "rg-noc","rg-noc","rg-noc","rg-noc",                                             // 24-27
+  "rg-govt","rg-conf","rg-fest","rg-index",                                        // 28-31
+  "rg-undef",                                                                       // 32
+  "rg-litform","rg-bio",                                                            // 33-34
+  "rg-lang","rg-lang","rg-lang",                                                   // 35-37
+  "rg-modified","rg-catsrc"                                                        // 38-39
+];
 
-        if (data.prompt) {
-          await navigator.clipboard.writeText(data.prompt);
-          const btn = document.getElementById("btn-generate");
-          btn.innerHTML = "✓ Prompt Copied!";
-          setTimeout(() => { btn.innerHTML = "Copy Prompt for AI"; }, 2000);
-        }
-      } catch (err) {
-        alert("Error: " + err.message);
-      } finally {
-        showLoading(false);
-      }
-    });
+/* ═══════════════════════════════════════════════════════════════════════════
+   Initialise checkbox groups
+═══════════════════════════════════════════════════════════════════════════ */
+function buildCheckboxGroup(containerId, options, inputName, maxNote, maxCount) {
+  const wrap = document.getElementById(containerId);
+  options.forEach(([val, label]) => {
+    const lbl = document.createElement('label');
+    lbl.className = 'p008-cb';
+    lbl.innerHTML = `<input type="checkbox" name="${inputName}" value="${val}"> ${val} — ${label}`;
+    wrap.appendChild(lbl);
+  });
 
-    // ── Submit to OCLC ───────────────────────────────────────────────────────
-    document.getElementById("btn-submit").addEventListener("click", async () => {
-      const marcxml = document.getElementById("marcxml-input").value.trim();
-
-      if (!marcxml) {
-        alert("Please paste the MARCXML record first.");
-        return;
-      }
-
-      showLoading(true, "Submitting to OCLC WMS...");
-
-      try {
-        const res = await fetch("/submit-marc", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ marcxml }),
-        });
-
-        const data = await res.json();
-        showLoading(false);
-
-        if (data.error) {
-          showResult("error", `<strong>Error:</strong> ${data.error}<br><small>${data.detail || ""}</small>`);
-        } else if (data.ocn) {
-          showResult("success", `
-            <strong>Success!</strong> Record created.<br>
-            OCN: <strong>${data.ocn}</strong><br><br>
-            <a href="${data.edit_url}" target="_blank" class="btn btn-outline btn-sm">
-              Open in WorldCat Metadata
-            </a>
-          `);
-        } else {
-          showResult("warn", "Record submitted, but the OCN could not be parsed from the response.");
-        }
-      } catch (err) {
-        showLoading(false);
-        showResult("error", "Network error: " + err.message);
-      }
-    });
-
-    function showResult(type, html) {
-      const section = document.getElementById("step-result");
-      const body = document.getElementById("result-body");
-      section.classList.remove("hidden");
-      body.innerHTML = `<div class="result-msg result-${type}">${html}</div>`;
-      section.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Enforce max selection
+  wrap.addEventListener('change', () => {
+    const checked = wrap.querySelectorAll('input:checked');
+    const note    = document.getElementById(maxNote);
+    if (checked.length >= maxCount) {
+      wrap.querySelectorAll('input:not(:checked)').forEach(cb => cb.parentElement.classList.add('disabled'));
+      note.classList.remove('hidden');
+    } else {
+      wrap.querySelectorAll('.p008-cb').forEach(l => l.classList.remove('disabled'));
+      note.classList.add('hidden');
     }
+    update008();
+  });
+}
 
-    function showLoading(on, text = "") {
-      const overlay = document.getElementById("loading-overlay");
-      if (on) {
-        document.getElementById("loading-text").textContent = text;
-        overlay.classList.remove("hidden");
-      } else {
-        overlay.classList.add("hidden");
-      }
+buildCheckboxGroup('ill-checks', ILL_OPTIONS, 'ill', 'ill-max-note', 4);
+buildCheckboxGroup('noc-checks', NOC_OPTIONS, 'noc', 'noc-max-note', 4);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Compute 008 (mirrors Python build_008 logic)
+═══════════════════════════════════════════════════════════════════════════ */
+function todayYYMMDD() {
+  const d  = new Date();
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return yy + mm + dd;
+}
+
+function getCheckedValues(name) {
+  return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(cb => cb.value);
+}
+
+function packCodes(arr, len) {
+  return arr.slice(0, len).join('').padEnd(len).slice(0, len);
+}
+
+function compute008() {
+  const today   = todayYYMMDD();                                       // 00-05
+  const tod     = (document.getElementById('p008-tod').value || 's')[0];  // 06
+
+  let d1 = (document.getElementById('p008-date1').value || '').trim();
+  if (!/^\d{4}$|^\d*u+\d*$/.test(d1) && d1.length !== 4) {
+    d1 = String(new Date().getFullYear());
+  }
+  const date1 = d1.padEnd(4).slice(0, 4);                             // 07-10
+
+  const date2 = (document.getElementById('p008-date2').value || '    ').padEnd(4).slice(0, 4); // 11-14
+  const place = (document.getElementById('p008-place').value || 'ne ').padEnd(3).slice(0, 3);  // 15-17
+
+  const ill   = packCodes(getCheckedValues('ill'), 4);                // 18-21
+  const ta    = (document.getElementById('p008-audience').value || ' ')[0]; // 22
+  const foi   = (document.getElementById('p008-form').value || ' ')[0];     // 23
+  const noc   = packCodes(getCheckedValues('noc'), 4);                // 24-27
+  const govt  = (document.getElementById('p008-govt').value || ' ')[0];     // 28
+  const conf  = (document.getElementById('p008-conf').value || '0')[0];     // 29
+  const fest  = (document.getElementById('p008-fest').value || '0')[0];     // 30
+  const idx   = (document.getElementById('p008-index').value || '0')[0];    // 31
+  const undef = ' ';                                                   // 32
+  const lit   = (document.getElementById('p008-litform').value || '0')[0];  // 33
+  const bio   = (document.getElementById('p008-bio').value || ' ')[0];      // 34
+  const lang  = (document.getElementById('p008-lang').value || 'und').padEnd(3).slice(0, 3); // 35-37
+  const mod   = (document.getElementById('p008-modified').value || ' ')[0]; // 38
+  const src   = (document.getElementById('p008-catsrc').value || 'd')[0];   // 39
+
+  return today + tod + date1 + date2 + place + ill + ta + foi + noc + govt + conf + fest + idx + undef + lit + bio + lang + mod + src;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Render character strip
+═══════════════════════════════════════════════════════════════════════════ */
+function renderStrip(field) {
+  const row   = document.getElementById('chars-008-row');
+  const badge = document.getElementById('badge-008');
+  row.innerHTML = '';
+
+  const valid = field.length === 40;
+  badge.textContent = valid ? '40 ✓' : `${field.length} ✗`;
+  badge.className   = 'badge-008 ' + (valid ? 'ok' : 'err');
+
+  for (let i = 0; i < 40; i++) {
+    const ch   = field[i] ?? ' ';
+    const span = document.createElement('span');
+    span.className = 'c008 ' + (REGION[i] || '');
+    span.title     = `Position ${i}: "${ch}"`;
+
+    const cv = document.createElement('span');
+    cv.className   = 'cv' + (ch === ' ' ? ' is-space' : '');
+    cv.textContent = ch === ' ' ? '·' : ch;
+
+    const cp = document.createElement('span');
+    cp.className   = 'cp';
+    cp.textContent = i;
+
+    span.appendChild(cv);
+    span.appendChild(cp);
+    row.appendChild(span);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Main update function — called on any field change
+═══════════════════════════════════════════════════════════════════════════ */
+function update008() {
+  const field = compute008();
+  renderStrip(field);
+}
+
+/* Attach listeners to all 008 form controls */
+['p008-tod','p008-date1','p008-date2','p008-place',
+ 'p008-audience','p008-form','p008-govt','p008-conf','p008-fest',
+ 'p008-index','p008-litform','p008-bio','p008-lang',
+ 'p008-modified','p008-catsrc'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', update008);
+  if (el && (el.tagName === 'INPUT')) el.addEventListener('input', update008);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Toggle edit panel
+═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('btn-edit-008').addEventListener('click', () => {
+  const panel = document.getElementById('panel-008');
+  const btn   = document.getElementById('btn-edit-008');
+  const open  = panel.classList.toggle('open');
+  btn.textContent = open ? '✕ Close' : '✏ Edit';
+  btn.classList.toggle('active', open);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Seed defaults and render initial strip
+═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('p008-date1').value = String(new Date().getFullYear());
+document.getElementById('p008-place').value  = 'ne';
+document.getElementById('p008-lang').value   = 'dut';
+update008();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Generate & Copy Prompt
+═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('btn-generate').addEventListener('click', async () => {
+  const field_008       = compute008();
+  const cat_lang        = document.getElementById('cat_lang').value;
+  const isbn            = document.getElementById('isbn').value.trim();
+  const format_book     = document.getElementById('format_book').value.trim();
+  const description     = document.getElementById('description').value.trim();
+  const extra_instructions = document.getElementById('extra-instructions').value.trim();
+
+  showLoading(true, 'Generating Prompt…');
+
+  try {
+    const res = await fetch('/generate-prompt', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        field_008,
+        cat_lang,
+        isbn,
+        format_book,
+        description,
+        extra_instructions
+      }),
+    });
+    const data = await res.json();
+
+    if (data.prompt) {
+      await navigator.clipboard.writeText(data.prompt);
+      const btn = document.getElementById('btn-generate');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ Prompt Copied!';
+      setTimeout(() => { btn.innerHTML = orig; }, 2500);
     }
-  </script>
-    {% endblock %}
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    showLoading(false);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Submit to OCLC
+═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('btn-submit').addEventListener('click', async () => {
+  const marcxml = document.getElementById('marcxml-input').value.trim();
+
+  if (!marcxml) {
+    alert('Please paste the MARCXML record first.');
+    return;
+  }
+
+  showLoading(true, 'Submitting to OCLC WMS…');
+
+  try {
+    const res  = await fetch('/submit-marc', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ marcxml }),
+    });
+    const data = await res.json();
+    showLoading(false);
+
+    if (data.error) {
+      showResult('error', `<strong>Error:</strong> ${data.error}<br><small>${data.detail || ''}</small>`);
+    } else if (data.ocn) {
+      showResult('success', `
+        <strong>Success!</strong> Record created.<br>
+        OCN: <strong>${data.ocn}</strong><br><br>
+        <a href="${data.edit_url}" target="_blank" class="btn btn-outline btn-sm">
+          Open in WorldCat Metadata
+        </a>
+      `);
+    } else {
+      showResult('warn', 'Record submitted, but the OCN could not be parsed from the response.');
+    }
+  } catch (err) {
+    showLoading(false);
+    showResult('error', 'Network error: ' + err.message);
+  }
+});
+
+/* ── Helpers ────────────────────────────────────────────────────────────── */
+function showResult(type, html) {
+  const section = document.getElementById('step-result');
+  document.getElementById('result-body').innerHTML =
+    `<div class="result-msg result-${type}">${html}</div>`;
+  section.classList.remove('hidden');
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showLoading(on, text = '') {
+  const overlay = document.getElementById('loading-overlay');
+  if (on) {
+    document.getElementById('loading-text').textContent = text;
+    overlay.classList.remove('hidden');
+  } else {
+    overlay.classList.add('hidden');
+  }
+}
+</script>
+{% endblock %}
