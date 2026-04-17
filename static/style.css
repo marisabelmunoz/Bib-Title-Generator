@@ -145,7 +145,7 @@ hr.divider {
 }
 
 .header-inner {
-  max-width: 860px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
   height: 64px;
@@ -215,7 +215,7 @@ hr.divider {
 
 /* ── Main layout ──────────────────────────────────────────────────────────── */
 .main-content {
-  max-width: 860px;
+  max-width: 930px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
 }
