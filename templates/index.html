@@ -965,44 +965,46 @@ function showLoading(on, text = '') {
   }
 }
 
-  const appLastModified = "{{ app_last_modified }}"; // Passed from Flask
-  
   async function showUpdates() {
     const updateDiv = document.getElementById('update_note');
     if (!updateDiv) return;
     
-    // Get your app.py's last modified date (from backend or manual)
-    const appLastModified = "{{ app_last_modified }}"; // Or hardcoded date
+    const appLastModified = "{{ app_last_modified }}"; // From Flask
     
     try {
       const response = await fetch('https://raw.githubusercontent.com/marisabelmunoz/Bib-Title-Generator/refs/heads/main/updates.txt');
       const text = await response.text();
       
       const lines = text.split('\n');
-      const newNotes = [];
+      let latestDate = null;
+      let latestMessage = null;
       
+      // Find the most recent update (largest date)
       for (const line of lines) {
         const match = line.match(/^(\d{4}-\d{2}-\d{2})\s*:\s*(.*)$/);
         if (match) {
           const noteDate = match[1];
           const message = match[2];
           
-          if (noteDate > appLastModified) {
-            newNotes.push(`📢 ${noteDate}: ${message}`);
+          if (!latestDate || noteDate > latestDate) {
+            latestDate = noteDate;
+            latestMessage = message;
           }
         }
       }
       
-      // ONLY modify if there ARE updates
-      if (newNotes.length > 0) {
-        updateDiv.innerHTML = `<strong>📝 Updates available:</strong><br>${newNotes.join('<br>')}`;
-        updateDiv.style.display = 'block';  // Override CSS to SHOW
+      // ONLY show if latest update is newer than app.py
+      if (latestDate && latestDate > appLastModified) {
+        updateDiv.innerHTML = `
+          <strong>📢 New Update Available!</strong><br>
+          ${latestDate}: ${latestMessage}
+        `;
+        updateDiv.style.display = 'block';
       }
-      // If no updates, do NOTHING - keep display: none from CSS
+      // If no updates or app is newer, keep hidden
       
     } catch (error) {
       console.error('Error checking updates:', error);
-      // On error, also keep hidden
     }
   }
   

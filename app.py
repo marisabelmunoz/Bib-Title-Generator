@@ -20,20 +20,16 @@ import threading
 import time
 import webbrowser
 
-def get_local_file_date(filepath):
-    """Get last modified date of local file as YYYY-MM-DD"""
-    if os.path.exists(filepath):
-        timestamp = os.path.getmtime(filepath)
-        return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
-    return '1970-01-01'
+
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def index():
-    """Renders the main cataloging interface with current institution settings."""
-    inst = load_institution_config()
-    return render_template("index.html", **inst)
+    app_last_modified = datetime.fromtimestamp(
+        os.path.getmtime('app.py')
+    ).strftime('%Y-%m-%d')
+    return render_template('index.html', app_last_modified=app_last_modified)
 
 @app.route("/config", methods=["GET"])
 def config_page():

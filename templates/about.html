@@ -143,81 +143,8 @@
             </section>
         <section class="card" style="border-top: 4px solid #95a5a6; background-color: #fcfcfc;">
 
-            <div class="update-container">
-  <div id="update_note"></div>
-</div>
+ 
         </section>
     </div>
 
-    <script>
-  async function showFormattedUpdates() {
-    const updateDiv = document.getElementById('update_note');
-    if (!updateDiv) return;
-    
-    // Get your app.py's last modified date
-    const appLastModified = "{{ app_last_modified }}"; // Or hardcoded date
-    
-    try {
-      const response = await fetch('https://raw.githubusercontent.com/marisabelmunoz/Bib-Title-Generator/refs/heads/main/updates.txt');
-      const text = await response.text();
-      
-      const lines = text.split('\n');
-      const newUpdates = [];
-      
-      for (const line of lines) {
-        const match = line.match(/^(\d{4}-\d{2}-\d{2})\s*:\s*(.*)$/);
-        if (match) {
-          const noteDate = match[1];
-          const message = match[2];
-          
-          if (noteDate > appLastModified) {
-            newUpdates.push({ date: noteDate, message: message });
-          }
-        }
-      }
-      
-      // If there are updates, create beautiful HTML
-      if (newUpdates.length > 0) {
-        const updatesList = newUpdates.map(update => `
-          <li>
-            <span class="update-date">${update.date}</span>
-            <span class="update-message">${escapeHtml(update.message)}</span>
-          </li>
-        `).join('');
-        
-        updateDiv.innerHTML = `
-          <div class="card-header">
-            <span class="icon">🔉 </span>
-            <span>Updates:</span>
-          </div>
-          <div class="card-body">
-          <ul>
-            ${updatesList}
-          </ul>
-                <div style="background: #fff4f4; border-left: 4px solid #cc0000; padding: 1rem; margin-top: 1rem;">
-
-             If you see a message on the main page, pelase update the code.
-        </div>
-             </div>
-        `;
-        updateDiv.style.display = 'block';
-      }
-      // If no updates, keep hidden (CSS display: none)
-      
-    } catch (error) {
-      console.error('Error checking updates:', error);
-      // Keep hidden on error
-    }
-  }
-  
-  // Helper function to prevent XSS
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-  
-  // Run when page loads
-  showFormattedUpdates();
-</script>
     {% endblock %}
