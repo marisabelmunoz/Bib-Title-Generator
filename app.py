@@ -14,9 +14,18 @@ from handlers.config import (
 from handlers.oclc_api import get_access_token, create_bib_record
 from handlers.prompt import build_prompt
 from handlers.field_008 import build_008
+from datetime import datetime
+
 import threading
 import time
 import webbrowser
+
+def get_local_file_date(filepath):
+    """Get last modified date of local file as YYYY-MM-DD"""
+    if os.path.exists(filepath):
+        timestamp = os.path.getmtime(filepath)
+        return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+    return '1970-01-01'
 
 app = Flask(__name__)
 
