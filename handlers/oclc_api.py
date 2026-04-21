@@ -17,6 +17,17 @@ except (ImportError, ValueError):
 OCLC_TOKEN_URL = "https://oauth.oclc.org/token"
 OCLC_API_BASE = "https://metadata.api.oclc.org/worldcat/manage/bibs"
 
+def sanitize_marcxml(marcxml: str) -> str:
+    """
+    Sanitizes the MARCXML string by replacing non-breaking spaces (U+00A0) 
+    with standard ASCII spaces (U+0020). This ensures fixed-field lengths 
+    (like the 008) are calculated correctly by the OCLC validator.
+    """
+    if not marcxml:
+        return marcxml
+    # Replace Unicode non-breaking space with standard space
+    return marcxml.replace("\u00a0", " ")
+
 def get_user_agent():
     """Get user agent string with current contact email."""
     inst_config = load_institution_config()
@@ -75,11 +86,13 @@ def get_bib_record(ocn: str, token: str) -> tuple[str, int, str]:
 def put_bib_record(ocn: str, marcxml: str, token: str) -> tuple[str, int, str]:
     """
     PUT (replace) a bibliographic MARC record by OCN.
+    Automatically sanitizes whitespace before sending.
     """
+    sanitized_xml = sanitize_marcxml(marcxml)
     url = f"{OCLC_API_BASE}/{ocn}"
     response = requests.put(
         url,
-        data=marcxml.encode("utf-8"),
+        data=sanitized_xml.encode("utf-8"),
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/marcxml+xml",
@@ -91,7 +104,11 @@ def put_bib_record(ocn: str, marcxml: str, token: str) -> tuple[str, int, str]:
     return response.text, response.status_code, response.text
 
 def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
-    """Create a new bibliographic record in WorldCat"""
+    """
+    Create a new bibliographic record in WorldCat.
+    Automatically sanitizes whitespace before sending.
+    """
+    sanitized_xml = sanitize_marcxml(marcxml)
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/marcxml+xml",
@@ -100,7 +117,12 @@ def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
     }
     
     try:
-        response = requests.post(OCLC_API_BASE, data=marcxml.encode('utf-8'), headers=headers, timeout=30)
+        response = requests.post(
+            OCLC_API_BASE, 
+            data=sanitized_xml.encode('utf-8'), 
+            headers=headers, 
+            timeout=30
+        )
         return response.text, response.status_code, response.text
     except Exception as e:
         return str(e), 500, str(e)
