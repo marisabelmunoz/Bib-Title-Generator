@@ -195,7 +195,8 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 049: `<subfield code="a">{institution_code}</subfield>`
 
 **Leader:**
-- Use `00000nam a22000007c 4500` (positions 06=a, 07=m, 17=c)
+- Use `00000nam a22000007c 4500` (positions 06=a, 07=m, 17=c or i)
+- 17=c if ISBD punctuation is NOT present in the title you generate, otherwise 17=i if you omit ISBD punctuation
 
 **ISBN & Format (Field 020):**
 - ISBN: {isbn if isbn else "Not provided (extract from description if found)"}
@@ -235,7 +236,8 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 546 (language note) if the description mentions the language of the content in a way that is not clear from the 008 analysis
 - 650/651 (subjects) — keep them as #4 for evaluation; you can also use FAST headings and LCSH
 - 655 (genre/form) if the description mentions a specific genre or form
-- 700/710 (other contributors)
+- 700/710 (other contributors) : if the role is mentioned, inlude it in the appropriate subfields ($4 and $e for role) Use this page as reference for MARC21 relator codes: https://www.loc.gov/marc/relators/relacode.html .
+
 
 **Example format (MARCXML):**
 
