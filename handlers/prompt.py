@@ -195,7 +195,7 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 049: `<subfield code="a">{institution_code}</subfield>`
 
 **Leader:**
-- Use `00000nam a22000007c 4500` (positions 06=a, 07=m, 17=c or i)
+- Use `00000nam a22000007ci 4500` (positions 06=a, 07=m)
 - 17=c if ISBD punctuation is NOT present in the title you generate, otherwise 17=i if you omit ISBD punctuation
 
 **ISBN & Format (Field 020):**
@@ -242,7 +242,7 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 **Example format (MARCXML):**
 
 <record>
-    <leader>00000nam a22000007c 4500</leader>
+    <leader>00000nam a22000007i 4500</leader>
     <controlfield tag="008">{field_008_for_example}</controlfield>
     <datafield tag="020" ind1=" " ind2=" ">
         <subfield code="a">{isbn if isbn else "978..."}</subfield>
