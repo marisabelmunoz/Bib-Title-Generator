@@ -1,3 +1,3 @@
 2026-04-17 : Added form for the 008 field since AI could not get this right.
 2026-04-21 : Added space sanitation to the API for the 008 field, which takes care of the space problems when copying from AI.
-2026-04-28 : ⭐ Mayor update: Added to the configuration the ability to save custom prompts and moved the data folder to /static. ‼️NOTE: make sure you mode your data folder inside STATIC/, else it won't load it.  ✔️ Redownload whole code for the update.
+2026-04-29 : ⭐ Mayor update: Added to the configuration the ability to save custom prompts and moved the data folder to /static. ‼️NOTE: make sure you mode your data folder inside STATIC/, else it won't load it.  ✔️ Redownload whole code for the update.
