@@ -4,9 +4,10 @@ from cryptography.fernet import Fernet
 
 # Since this file is in /handlers/, we go up one level to reach the root, then into /data/
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = BASE_DIR / "static" / "data"
 CREDENTIALS_FILE = DATA_DIR / "credentials.txt"
 INSTITUTION_CONFIG_FILE = DATA_DIR / "institution_config.txt"
+CUSTOM_PROMPTS_FILE = DATA_DIR / "custom_prompts.txt"
 
 # This key must remain the same to decrypt existing credentials
 SECRET_KEY = b'pL9xW8_vG3R2k0_N7mB4v_C6xZ1lK9jH8gF7dS5aQ4w=' 
@@ -76,3 +77,43 @@ def load_institution_config() -> dict:
             "contact_name": DEFAULT_CONTACT_NAME,
             "contact_email": DEFAULT_CONTACT_EMAIL
         }
+    
+
+
+def load_custom_prompts() -> list:
+    """Load custom prompts from file. Returns list of {name, text} dicts."""
+    if not CUSTOM_PROMPTS_FILE.exists():
+        return []
+    prompts = []
+    for line in CUSTOM_PROMPTS_FILE.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if "|||" in line:
+            name, _, text = line.partition("|||")
+            name = name.strip()
+            text = text.strip()
+            if name and text:
+                prompts.append({"name": name, "text": text})
+    return prompts
+
+
+def save_custom_prompts(prompts: list) -> None:
+    """Persist the full list of custom prompts to file."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    lines = [f"{p['name']}|||{p['text']}" for p in prompts]
+    CUSTOM_PROMPTS_FILE.write_text("\n".join(lines), encoding="utf-8")
+
+
+def add_custom_prompt(name: str, text: str) -> list:
+    """Add or update a prompt by name. Returns the updated list."""
+    prompts = load_custom_prompts()
+    prompts = [p for p in prompts if p["name"].lower() != name.lower()]
+    prompts.append({"name": name, "text": text})
+    save_custom_prompts(prompts)
+    return prompts
+
+
+def delete_custom_prompt(name: str) -> list:
+    """Delete a prompt by name. Returns the updated list."""
+    prompts = [p for p in load_custom_prompts() if p["name"].lower() != name.lower()]
+    save_custom_prompts(prompts)
+    return prompts

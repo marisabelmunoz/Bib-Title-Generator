@@ -9,7 +9,10 @@ from handlers.config import (
     save_credentials,
     credentials_exist,
     load_institution_config,
-    save_institution_config
+    save_institution_config,
+    load_custom_prompts,
+    add_custom_prompt,
+    delete_custom_prompt,
 )
 from handlers.oclc_api import get_access_token, create_bib_record
 from handlers.prompt import build_prompt
@@ -21,6 +24,7 @@ import time
 import webbrowser
 
 
+# updated 4/24/26
 
 app = Flask(__name__)
 
@@ -185,6 +189,38 @@ def submit_marc():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
+@app.route("/config/custom-prompts", methods=["GET"])
+def get_custom_prompts():
+    """Return all saved custom prompts as JSON."""
+    return jsonify(load_custom_prompts())
+
+
+@app.route("/config/custom-prompts", methods=["POST"])
+def save_custom_prompt():
+    """Add or update a named custom prompt."""
+    data = request.get_json()
+    name = (data.get("name") or "").strip()
+    text = (data.get("text") or "").strip()
+
+    if not name:
+        return jsonify({"error": "Prompt name is required."}), 400
+    if not text:
+        return jsonify({"error": "Prompt text is required."}), 400
+    if "|||" in name:
+        return jsonify({"error": "Prompt name may not contain '|||'."}), 400
+
+    updated = add_custom_prompt(name, text)
+    return jsonify(updated)
+
+
+@app.route("/config/custom-prompts/<path:name>", methods=["DELETE"])
+def remove_custom_prompt(name):
+    """Delete a custom prompt by name."""
+    updated = delete_custom_prompt(name)
+    return jsonify(updated)
 
 
 @app.route("/about")

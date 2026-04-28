@@ -610,7 +610,16 @@
               placeholder="Example: 'Include 650 tags for Victorian literature, but no subject headings for geography.'"></textarea>
           </div>
 
+          <!-- Custom prompt chips — loaded from server -->
+          <div id="custom-prompts-section" class="field-group" style="grid-column: span 2; margin-top: 0.25rem; display: none;">
+            <label class="field-label">Reusable Prompts
+              <span class="field-optional">— click to append to Extra Instructions</span>
+            </label>
+            <div id="custom-prompt-chips" class="custom-prompt-chips"></div>
+          </div>
+           
         </div><!-- /field-grid -->
+
 
         <div class="card-actions">
           <button id="btn-generate" class="btn btn-primary">
@@ -966,6 +975,39 @@ function showLoading(on, text = '') {
 }
 
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Custom Prompt Chips
+═══════════════════════════════════════════════════════════════════════════ */
+(function loadCustomPromptChips() {
+  fetch('/config/custom-prompts')
+    .then(r => r.json())
+    .then(prompts => {
+      if (!prompts || !prompts.length) return;
+      const section   = document.getElementById('custom-prompts-section');
+      const container = document.getElementById('custom-prompt-chips');
+      const extraEl   = document.getElementById('extra-instructions');
+      section.style.display = '';
+
+      prompts.forEach(p => {
+        const chip = document.createElement('button');
+        chip.type      = 'button';
+        chip.className = 'custom-prompt-chip';
+        chip.title     = p.text;
+        chip.textContent = p.name;
+
+        chip.addEventListener('click', () => {
+          const current = extraEl.value.trim();
+          extraEl.value = current ? current + '\n' + p.text : p.text;
+          chip.classList.toggle('chip-active');
+          extraEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        container.appendChild(chip);
+      });
+    })
+    .catch(() => {/* silently skip if API unavailable */});
+})();
 
   async function showUpdates() {
     const updateDiv = document.getElementById('update_note');

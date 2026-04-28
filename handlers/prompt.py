@@ -269,6 +269,7 @@ Format: {format_book if isbn else "no isbn tag to include this, ignore"}
 **Specific User Instructions:**
 {extra_instructions if extra_instructions else "None provided."}
 
+
 **Return only the MARCXML record in a code block to copy.**
 """
     return prompt.strip()

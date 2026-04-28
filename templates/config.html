@@ -108,5 +108,140 @@
 
         </div>
       </section>
+
+      <!-- TODO add custom prompts to store in custom_prompts.txt file as a list to be able to edit, delete and add PER prompt -->
+      <section class="card" id="card-custom-prompts">
+        <div class="card-header">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <h2>Custom Reusable Prompts</h2>
+        </div>
+        <div class="card-body">
+
+          <div class="alert alert-info" style="margin-bottom:1.5rem;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Saved prompts appear as one-click chips on the main cataloging form. Click a chip to append it to the <em>Extra Instructions</em> field.
+          </div>
+
+          <!-- Add / Edit form -->
+          <div class="field-group" style="margin-bottom:1rem;">
+            <label for="cp-name" class="field-label">Prompt Name</label>
+            <input type="text" id="cp-name" class="input-field" placeholder="e.g. Dutch biography" maxlength="60" />
+            <div class="field-hint">Short label shown on the chip. Saving with an existing name will overwrite it.</div>
+          </div>
+
+          <div class="field-group" style="margin-bottom:1rem;">
+            <label for="cp-text" class="field-label">Prompt Text</label>
+            <textarea id="cp-text" class="textarea-field" rows="4"
+              placeholder="e.g. Always add a 655 _7 $a Biografie. Do not include a 504 field unless a bibliography is mentioned."></textarea>
+          </div>
+
+          <div class="action-row" style="margin-bottom:2rem;">
+            <button type="button" id="btn-cp-save" class="btn btn-primary">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Prompt
+            </button>
+            <span id="cp-feedback" class="copy-feedback hidden"></span>
+          </div>
+
+          <!-- Saved prompts list -->
+          <div id="cp-list-wrap">
+            <div class="field-label" style="margin-bottom:.75rem;">Saved Prompts</div>
+            <div id="cp-list" class="custom-prompt-list">
+              <span class="cp-empty muted">No custom prompts saved yet.</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
     </div>
-    {% endblock %}
+
+    <script>
+    /* ── Custom Prompts — config page ────────────────────────────────────── */
+    (function () {
+      const nameEl     = document.getElementById('cp-name');
+      const textEl     = document.getElementById('cp-text');
+      const saveBtn    = document.getElementById('btn-cp-save');
+      const feedback   = document.getElementById('cp-feedback');
+      const listEl     = document.getElementById('cp-list');
+
+      function showFeedback(msg, isError) {
+        feedback.textContent  = msg;
+        feedback.style.color  = isError ? 'var(--error)' : 'var(--success)';
+        feedback.classList.remove('hidden');
+        setTimeout(() => feedback.classList.add('hidden'), 3000);
+      }
+
+      function renderList(prompts) {
+        listEl.innerHTML = '';
+        if (!prompts.length) {
+          listEl.innerHTML = '<span class="cp-empty muted">No custom prompts saved yet.</span>';
+          return;
+        }
+        prompts.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'cp-list-item';
+          item.innerHTML = `
+            <div class="cp-list-item-header">
+              <span class="cp-list-name">${escHtml(p.name)}</span>
+              <div class="cp-list-actions">
+                <button class="btn-cp-edit" title="Load for editing" data-name="${escHtml(p.name)}" data-text="${escHtml(p.text)}">✏ Edit</button>
+                <button class="btn-cp-delete" title="Delete prompt" data-name="${escHtml(p.name)}">✕</button>
+              </div>
+            </div>
+            <div class="cp-list-preview">${escHtml(p.text)}</div>`;
+          listEl.appendChild(item);
+        });
+
+        listEl.querySelectorAll('.btn-cp-edit').forEach(btn => {
+          btn.addEventListener('click', () => {
+            nameEl.value = btn.dataset.name;
+            textEl.value = btn.dataset.text;
+            nameEl.focus();
+          });
+        });
+
+        listEl.querySelectorAll('.btn-cp-delete').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm(`Delete prompt "${btn.dataset.name}"?`)) return;
+            const res = await fetch(`/config/custom-prompts/${encodeURIComponent(btn.dataset.name)}`, { method: 'DELETE' });
+            const data = await res.json();
+            renderList(data);
+            showFeedback('Prompt deleted.', false);
+          });
+        });
+      }
+
+      function escHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      // Load on page ready
+      fetch('/config/custom-prompts')
+        .then(r => r.json())
+        .then(renderList)
+        .catch(() => {});
+
+      saveBtn.addEventListener('click', async () => {
+        const name = nameEl.value.trim();
+        const text = textEl.value.trim();
+        if (!name) { showFeedback('Please enter a prompt name.', true); return; }
+        if (!text) { showFeedback('Please enter the prompt text.', true); return; }
+
+        const res  = await fetch('/config/custom-prompts', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ name, text }),
+        });
+        const data = await res.json();
+        if (data.error) { showFeedback(data.error, true); return; }
+
+        renderList(data);
+        showFeedback('Prompt saved!', false);
+        nameEl.value = '';
+        textEl.value = '';
+      });
+    })();
+    </script>
+
+        {% endblock %}

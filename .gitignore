@@ -1,6 +1,5 @@
-data/
-credentials.txt
-institution_config.txt
+**/data/
+
 Bibliographic Record AI Prompt Generator.lnk
 
 __pycache__/
