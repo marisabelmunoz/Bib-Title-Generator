@@ -5,14 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bibliographic MARC21 Prompt Generator and API{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+
 </head>
 <body>
+
+<!-- ── Update banner (shown when a newer version is detected) ── -->
+<div id="update-banner">
+    <div class="update-banner-inner">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v10m0 0l-3-3m3 3l3-3M3 17a9 9 0 0018 0"/></svg>
+        <strong>Update available</strong>
+        <span>A new version (<span id="banner-remote-ver"></span>) is ready — you are on <span id="banner-local-ver"></span>.</span>
+        <span class="spacer"></span>
+        <button class="btn btn-sm btn-primary" onclick="openUpdateModal()">Update now</button>
+        <button class="btn btn-sm btn-ghost" onclick="dismissBanner()">Dismiss</button>
+    </div>
+</div>
 
 <header class="site-header">
     <div class="header-inner">
         <div class="header-brand">
             <span class="brand-mark">Bib Prompt Generator</span>
-    
+            <!-- Version badge; becomes clickable when an update is available -->
+            <span class="version-badge" id="version-badge"
+                  title="Click to check for updates"
+                  onclick="openUpdateModal()">
+                v{{ local_version }}
+            </span>
         </div>
         <nav class="header-nav">
             <a href="/" class="nav-link">Catalog</a>
@@ -21,6 +40,40 @@
         </nav>
     </div>
 </header>
+
+<!-- ── Update modal ── -->
+<div id="update-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="update-modal-box">
+        <div class="update-modal-header">
+            <h3 id="modal-title">🔄 Application Update</h3>
+            <button class="update-modal-close" onclick="closeUpdateModal()" aria-label="Close">✕</button>
+        </div>
+
+        <div class="update-modal-body">
+            <div class="update-versions">
+                <div>Current version:&nbsp;<span id="modal-local-ver">{{ local_version }}</span></div>
+                <div id="modal-remote-row" style="display:none">
+                    Available:&nbsp;<span id="modal-remote-ver"></span>
+                </div>
+            </div>
+
+            <p id="modal-status-text" style="font-size:0.88rem;color:var(--muted);">
+                Checking for updates…
+            </p>
+
+            <!-- Streaming log (shown during/after update) -->
+            <div id="update-log" aria-live="polite"></div>
+        </div>
+
+        <div class="update-modal-footer">
+            <button class="btn btn-ghost" onclick="closeUpdateModal()" id="modal-close-btn">Close</button>
+            <button class="btn btn-primary" id="modal-update-btn"
+                    onclick="runUpdate()" style="display:none">
+                Pull update
+            </button>
+        </div>
+    </div>
+</div>
 
 <main class="main-content">
     {% block content %}{% endblock %}
@@ -33,18 +86,160 @@
             <p><strong>Developed by:</strong> Marisabel Munoz<br>
             <strong>Email:</strong> <a href="mailto:Marisabel.munoz@eur.nl">Marisabel.munoz@eur.nl</a><br>
             <strong>Library:</strong> Erasmus University Library</p>
-            <p style="font-size: 0.75rem;">Created with Claude AI & Gemini AI</p>
+            <p style="font-size: 0.75rem;">Created with Claude AI &amp; Gemini AI</p>
         </div>
-        
+
         <div class="footer-disclaimer">
-            <strong>Disclaimer:</strong> This tool generates prompts for external AI processing. 
-            Even with explicit constraints, AI can produce errors or "hallucinations." 
-            Users are <u>strictly required</u> to verify all MARC21 data before OCLC submission. 
+            <strong>Disclaimer:</strong> This tool generates prompts for external AI processing.
+            Even with explicit constraints, AI can produce errors or "hallucinations."
+            Users are <u>strictly required</u> to verify all MARC21 data before OCLC submission.
             The cataloger remains the final authority.
         </div>
     </div>
 </footer>
 
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let _remoteVersion   = null;
+let _bannerDismissed = false;
+let _updateDone      = false;
+
+// ── Auto-check on page load ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/check-update')
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'update_available') {
+                _remoteVersion = data.remote_version;
+                showUpdateAvailable(data.local_version, data.remote_version);
+            }
+        })
+        .catch(() => {/* silently ignore network errors on auto-check */});
+});
+
+function showUpdateAvailable(local, remote) {
+    // Highlight version badge
+    const badge = document.getElementById('version-badge');
+    badge.classList.add('has-update');
+    badge.title = `Update available: v${remote} — click to update`;
+
+    // Show banner
+    if (!_bannerDismissed) {
+        document.getElementById('banner-local-ver').textContent  = 'v' + local;
+        document.getElementById('banner-remote-ver').textContent = 'v' + remote;
+        document.getElementById('update-banner').classList.add('visible');
+    }
+}
+
+function dismissBanner() {
+    _bannerDismissed = true;
+    document.getElementById('update-banner').classList.remove('visible');
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function openUpdateModal() {
+    const modal = document.getElementById('update-modal');
+    modal.classList.add('visible');
+
+    if (!_updateDone) {
+        // Re-check each time the modal opens (in case badge was clicked without banner)
+        setModalStatus('Checking for updates…');
+        document.getElementById('modal-update-btn').style.display = 'none';
+        document.getElementById('modal-remote-row').style.display = 'none';
+        document.getElementById('update-log').classList.remove('visible');
+        document.getElementById('update-log').innerHTML = '';
+
+        fetch('/check-update')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('modal-local-ver').textContent = data.local_version || '{{ local_version }}';
+
+                if (data.status === 'update_available') {
+                    _remoteVersion = data.remote_version;
+                    document.getElementById('modal-remote-ver').textContent = 'v' + data.remote_version;
+                    document.getElementById('modal-remote-row').style.display = '';
+                    setModalStatus(`Version <strong>v${data.remote_version}</strong> is available. Pull the update to get the latest changes.`);
+                    document.getElementById('modal-update-btn').style.display = '';
+                    showUpdateAvailable(data.local_version, data.remote_version);
+                } else if (data.status === 'up_to_date') {
+                    setModalStatus('✅ You are already on the latest version.');
+                } else {
+                    setModalStatus(`⚠️ Could not check for updates: ${data.message || 'Unknown error.'}`);
+                }
+            })
+            .catch(() => {
+                setModalStatus('⚠️ Could not reach GitHub to check for updates.');
+            });
+    }
+}
+
+function closeUpdateModal() {
+    document.getElementById('update-modal').classList.remove('visible');
+}
+
+// Close on backdrop click
+document.getElementById('update-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeUpdateModal();
+});
+
+function setModalStatus(html) {
+    document.getElementById('modal-status-text').innerHTML = html;
+}
+
+// ── Run git pull ──────────────────────────────────────────────────────────────
+function runUpdate() {
+    const btn = document.getElementById('modal-update-btn');
+    btn.disabled    = true;
+    btn.textContent = 'Updating…';
+    setModalStatus('Running <code>git pull</code> — please wait…');
+
+    const log = document.getElementById('update-log');
+    log.innerHTML = '';
+    log.classList.add('visible');
+
+    const es = new EventSource('/perform-update');
+
+    es.onmessage = function(e) {
+        const line = e.data;
+
+        // Colour-code the line
+        let cls = '';
+        if (/^ERROR:/i.test(line))   cls = 'log-error';
+        else if (/^WARNING:/i.test(line)) cls = 'log-warn';
+        else if (/✅/.test(line))    cls = 'log-ok';
+
+        if (line === 'DONE_SUCCESS') {
+            es.close();
+            _updateDone = true;
+            document.getElementById('version-badge').classList.remove('has-update');
+            document.getElementById('update-banner').classList.remove('visible');
+            setModalStatus('✅ Update complete! Please <strong>restart the app</strong> for all changes to take effect.');
+            btn.textContent = 'Done';
+            return;
+        }
+        if (line === 'DONE_ERROR') {
+            es.close();
+            setModalStatus('❌ Update failed. See the log above for details.');
+            btn.disabled    = false;
+            btn.textContent = 'Retry';
+            return;
+        }
+
+        const span = document.createElement('span');
+        if (cls) span.className = cls;
+        span.textContent = line + '\n';
+        log.appendChild(span);
+        log.scrollTop = log.scrollHeight;
+    };
+
+    es.onerror = function() {
+        es.close();
+        setModalStatus('❌ Connection to server lost during update.');
+        btn.disabled    = false;
+        btn.textContent = 'Retry';
+    };
+}
+</script>
+
 </body>
 </html>
-
