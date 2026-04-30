@@ -229,7 +229,7 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 264 #1 (production/publication) – use RDA $b publisher, $c date
 - 264 #4 copyright year (always based on publication date unless stated on the text)
 - 300 (physical description) – pagination, illustrations, dimensions; determine if illustrations are present based on description and include in physical description
-- 336/337/338 (content, media, carrier type – RDA mandatory)
+- 336/337/338 (content, media, carrier type – RDA mandatory - use accodring to Cataloging Language and the content of the description)
 - 490 / 830 (series)
 - 500 (general notes as needed)
 - 504 (bibliography note) if the description mentions bibliography or sources, register, notes, etc.
