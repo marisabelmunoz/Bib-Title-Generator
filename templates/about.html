@@ -16,7 +16,21 @@
             </div>
         </section>
 
-    
+        <!-- ── Changelog ──────────────────────────────────────────────────── -->
+        <section class="card">
+            <div class="card-header">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Recent Updates
+            </div>
+            <div class="card-body">
+                <div id="changelog-list">
+                    <p style="color:var(--muted);font-size:0.88rem;">Loading changelog…</p>
+                </div>
+            </div>
+        </section>
+
         <section class="card">
   <div class="card-header">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -26,7 +40,7 @@
   </div>
   <div class="card-body">
     <div class="workflow-container">
-      
+
       <div class="workflow-step">
         <div class="step-number">1</div>
         <div class="step-content">
@@ -51,7 +65,8 @@
   <li>Special markings: inscriptions, bookplates, signatures, ex-library stamps</li>
 </ul>
 
-<p><strong>Tip:</strong> Don't worry about formatting perfectly. The AI can extract structured metadata from messy copy-paste, including plain text, bullet points, or even scanned OCR snippets. When in doubt, paste more rather than less — it's better to have extra info than to miss a key detail.</p>        </div>
+<p><strong>Tip:</strong> Don't worry about formatting perfectly. The AI can extract structured metadata from messy copy-paste, including plain text, bullet points, or even scanned OCR snippets. When in doubt, paste more rather than less — it's better to have extra info than to miss a key detail.</p>
+        </div>
       </div>
 
       <div class="workflow-step">
@@ -78,6 +93,7 @@
     </div>
   </div>
 </section>
+
         <section class="card">
             <div class="card-header">Technical Resources</div>
             <div class="card-body">
@@ -140,11 +156,105 @@
                     probabilistic. The cataloger remains the final authority on all metadata submitted to WorldCat.
                 </p>
             </div>
-            </section>
-        <section class="card" style="border-top: 4px solid #95a5a6; background-color: #fcfcfc;">
-
- 
         </section>
+
+        <section class="card" style="border-top: 4px solid #95a5a6; background-color: #fcfcfc;"></section>
     </div>
 
-    {% endblock %}
+<style>
+.changelog-entry {
+    display: flex;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border-light);
+    align-items: flex-start;
+}
+.changelog-entry:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.changelog-date {
+    flex-shrink: 0;
+    min-width: 130px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--teal-dk);
+    background: var(--teal-lt);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.2rem 0.65rem;
+    margin-top: 0.15rem;
+    white-space: nowrap;
+    text-align: center;
+}
+.changelog-text {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.6;
+}
+</style>
+
+<script>
+(function () {
+    const UPDATES_URL =
+        'https://raw.githubusercontent.com/marisabelmunoz/Bib-Title-Generator/refs/heads/main/updates.txt';
+
+    const MONTHS = [
+        'January','February','March','April','May','June',
+        'July','August','September','October','November','December'
+    ];
+
+    function humanDate(isoDate) {
+        // isoDate = "YYYY-MM-DD"
+        const [y, m, d] = isoDate.split('-').map(Number);
+        return `${MONTHS[m - 1]} ${d}, ${y}`;
+    }
+
+    function renderChangelog(entries) {
+        const container = document.getElementById('changelog-list');
+        if (!entries.length) {
+            container.innerHTML = '<p style="color:var(--muted);font-size:0.88rem;">No updates found.</p>';
+            return;
+        }
+        container.innerHTML = entries.map(e => `
+            <div class="changelog-entry">
+                <span class="changelog-date">${humanDate(e.date)}</span>
+                <div class="changelog-text">${e.content}</div>
+            </div>
+        `).join('');
+    }
+
+    fetch(UPDATES_URL, { cache: 'no-store' })
+        .then(r => {
+            if (!r.ok) throw new Error('Could not load updates.txt');
+            return r.text();
+        })
+        .then(text => {
+            const entries = text
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.includes(' : '))
+                .map(line => {
+                    const sep   = line.indexOf(' : ');
+                    const date  = line.slice(0, sep).trim();
+                    const content = line.slice(sep + 3).trim();
+                    return { date, content };
+                })
+                // keep only valid YYYY-MM-DD dates
+                .filter(e => /^\d{4}-\d{2}-\d{2}$/.test(e.date))
+                // newest first
+                .reverse()
+                // last 10
+                .slice(0, 10);
+
+            renderChangelog(entries);
+        })
+        .catch(() => {
+            document.getElementById('changelog-list').innerHTML =
+                '<p style="color:var(--muted);font-size:0.88rem;">Could not load changelog — check your internet connection.</p>';
+        });
+})();
+</script>
+
+{% endblock %}
