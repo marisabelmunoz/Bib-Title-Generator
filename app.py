@@ -353,12 +353,14 @@ def check_update():
     remote_ver       = remote["version"]
     update_available = remote_ver != local_ver
 
-    return jsonify({
+    resp = jsonify({
         "status":           "update_available" if update_available else "up_to_date",
         "local_version":    local_ver,
         "remote_version":   remote_ver,
         "update_available": update_available,
     })
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
 
 
 @app.route("/perform-update")

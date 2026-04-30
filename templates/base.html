@@ -249,7 +249,7 @@ let _updateDone      = false;
 
 // ── Auto-check on page load ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('/check-update')
+    fetch('/check-update', { cache: 'no-store' })
         .then(r => r.json())
         .then(data => {
             // Always show local version in badge — no template variable needed
@@ -298,7 +298,7 @@ function openUpdateModal() {
         document.getElementById('update-log').classList.remove('visible');
         document.getElementById('update-log').innerHTML = '';
 
-        fetch('/check-update')
+        fetch('/check-update', { cache: 'no-store' })
             .then(r => r.json())
             .then(data => {
                 document.getElementById('modal-local-ver').textContent = data.local_version || '{{ local_version }}';
