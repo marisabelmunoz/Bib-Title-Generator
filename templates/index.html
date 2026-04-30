@@ -223,7 +223,10 @@
   .badge-008.ok  { background: #dcfce7; color: #15803d; }
   .badge-008.err { background: #fee2e2; color: #b91c1c; }
 </style>
-<div id="update_note" class="update-note"></div>
+
+
+
+
   <div class="content-col">
 
 
@@ -1009,49 +1012,7 @@ function showLoading(on, text = '') {
     .catch(() => {/* silently skip if API unavailable */});
 })();
 
-  async function showUpdates() {
-    const updateDiv = document.getElementById('update_note');
-    if (!updateDiv) return;
-    
-    const appLastModified = "{{ app_last_modified }}";
-    
-    try {
-      // Use GitHub API to get the file (bypasses CDN cache)
-      const response = await fetch('https://api.github.com/repos/marisabelmunoz/Bib-Title-Generator/contents/updates.txt');
-      const data = await response.json();
-      const text = atob(data.content); // Decode base64
-      
-      const lines = text.split('\n');
-      let latestDate = null;
-      let latestMessage = null;
-      
-      for (const line of lines) {
-        const match = line.match(/^(\d{4}-\d{2}-\d{2})\s*:\s*(.*)$/);
-        if (match) {
-          const noteDate = match[1];
-          const message = match[2];
-          
-          if (!latestDate || noteDate > latestDate) {
-            latestDate = noteDate;
-            latestMessage = message;
-          }
-        }
-      }
-      
-      if (latestDate && latestDate > appLastModified) {
-        updateDiv.innerHTML = `
-          <strong>📢 New Update Available!</strong><br>
-          ${latestDate}: ${latestMessage}
-        `;
-        updateDiv.style.display = 'block';
-      }
-      
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  }
   
-  showUpdates();
 
 </script>
 {% endblock %}
