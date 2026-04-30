@@ -6,7 +6,150 @@
     <title>{% block title %}Bibliographic MARC21 Prompt Generator and API{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
+    <style>
+        /* ── Version badge in header ── */
+        .version-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            color: var(--muted);
+            background: var(--teal-lt);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.2rem 0.6rem;
+            white-space: nowrap;
+            cursor: default;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        /* Clickable when update is available */
+        .version-badge.has-update {
+            background: var(--warn-bg);
+            border-color: var(--warn);
+            color: var(--warn);
+            cursor: pointer;
+            animation: badge-pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes badge-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--warn) 30%, transparent); }
+            50%       { box-shadow: 0 0 0 5px transparent; }
+        }
 
+        /* ── Update banner ── */
+        #update-banner {
+            display: none;
+            background: var(--warn-bg);
+            border-bottom: 2px solid var(--warn);
+            padding: 0.55rem 1.5rem;
+        }
+        #update-banner.visible {
+            display: block;
+        }
+        .update-banner-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--warn);
+        }
+        .update-banner-inner strong {
+            font-weight: 700;
+        }
+        .update-banner-inner .spacer { flex: 1; }
+
+        /* ── Update modal ── */
+        #update-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+        }
+        #update-modal.visible {
+            display: flex;
+        }
+        .update-modal-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: min(600px, 94vw);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .update-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.9rem 1.25rem;
+            background: var(--teal-lt);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .update-modal-header h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .update-modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        .update-modal-close:hover { background: var(--border-light); }
+
+        .update-modal-body {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .update-versions {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .update-versions span { font-family: var(--font-mono); color: var(--text); font-weight: 600; }
+
+        /* Terminal log */
+        #update-log {
+            display: none;
+            background: #0e1c1a;
+            color: #a8d8d2;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            line-height: 1.6;
+            border-radius: var(--radius-sm);
+            padding: 0.85rem 1rem;
+            max-height: 220px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        #update-log.visible { display: block; }
+        #update-log .log-error  { color: #f48071; }
+        #update-log .log-ok     { color: #5ee0a0; }
+        #update-log .log-warn   { color: #f0c060; }
+
+        .update-modal-footer {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            padding: 0.9rem 1.25rem;
+            border-top: 1px solid var(--border-light);
+        }
+    </style>
 </head>
 <body>
 
@@ -26,11 +169,11 @@
     <div class="header-inner">
         <div class="header-brand">
             <span class="brand-mark">Bib Prompt Generator</span>
-            <!-- Version badge; becomes clickable when an update is available -->
+            <!-- Version badge; populated by JS so it works on every page -->
             <span class="version-badge" id="version-badge"
                   title="Click to check for updates"
                   onclick="openUpdateModal()">
-                v{{ local_version }}
+                v…
             </span>
         </div>
         <nav class="header-nav">
@@ -109,12 +252,18 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/check-update')
         .then(r => r.json())
         .then(data => {
+            // Always show local version in badge — no template variable needed
+            if (data.local_version) {
+                document.getElementById('version-badge').textContent = 'v' + data.local_version;
+            }
             if (data.status === 'update_available') {
                 _remoteVersion = data.remote_version;
                 showUpdateAvailable(data.local_version, data.remote_version);
             }
         })
-        .catch(() => {/* silently ignore network errors on auto-check */});
+        .catch(() => {
+            document.getElementById('version-badge').textContent = 'v?';
+        });
 });
 
 function showUpdateAvailable(local, remote) {
