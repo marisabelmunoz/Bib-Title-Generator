@@ -3,12 +3,14 @@
 
 ## Usage:
 
-1. download and extract the code to a permanent location where it will live. (If it moves you will need to run install again)
-2. Right click inside the folder created and open the Terminal, inside the terminal type: `python install.py`
-3. Wait for the dependencies to install.
-4. Once the shortcut is created, **drag it to Desktop or taskbar** as you wish.
-5. Double click and the browser will automatically open
-6. For setting up the API, please read the **about** page.
+1. open the terminal in a permanent location where it will live. (If it moves you will need to run install again)
+2. `git clone https://github.com/marisabelmunoz/Bib-Title-Generator.git` It is important that you use git if you also want to get updates!
+  - Else: download and extract the code to a permanent location where it will live. (If it moves you will need to run install again)
+3. Right click inside the folder created and open the Terminal, inside the terminal type: `python install.py`
+4. Wait for the dependencies to install.
+5. Once the shortcut is created, **drag it to Desktop or taskbar** as you wish.
+6. Double click and the browser will automatically open
+7. For setting up the API, please read the **about** page.
 
 See the About page for more information.
 
