@@ -27,11 +27,6 @@
           {% endif %}
 
           <form method="POST" action="/config/institution" autocomplete="off">
-            <div class="field-group">
-              <label for="institution_name" class="field-label">Institution Name</label>
-              <input type="text" id="institution_name" name="institution_name" class="input-field" value="{{ institution_name }}" required />
-              <div class="field-hint">Appears in the page header</div>
-            </div>
 
             <div class="field-group">
               <label for="institution_code" class="field-label">Institution Code (MARC 040 $a and $c)</label>
@@ -109,7 +104,188 @@
         </div>
       </section>
 
-      <!-- TODO add custom prompts to store in custom_prompts.txt file as a list to be able to edit, delete and add PER prompt -->
+      <!-- ══ 008 Profiles ══════════════════════════════════════════════════════ -->
+      <section class="card" id="card-008-profiles">
+        <div class="card-header">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h10"/><circle cx="17" cy="17" r="3"/><path d="M17 15v2l1 1"/></svg>
+          <h2>008 Fixed Field Profiles</h2>
+        </div>
+        <div class="card-body">
+
+          <div class="alert alert-info" style="margin-bottom:1.5rem;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Profiles store your preferred 008 default values. On the <strong>Catalog</strong> page, select a profile to instantly prefill the 008 builder. Date fields are always set per item.
+          </div>
+
+          <!-- Profile name -->
+          <div class="field-group" style="margin-bottom:1rem;">
+            <label for="prof-name" class="field-label">Profile Name</label>
+            <input type="text" id="prof-name" class="input-field" placeholder="e.g. Dutch Academic Book" maxlength="60" />
+            <div class="field-hint">Saving with an existing name will overwrite it.</div>
+          </div>
+
+          <!-- Profile fields — two-column grid matching the 008 builder style -->
+          <div class="p008-grid" style="margin-bottom:1rem;">
+
+            <div class="p008-field">
+              <label>Place of publication <span class="p008-pos">15-17</span></label>
+              <input type="text" id="prof-place" class="input-field font-mono" maxlength="3" placeholder="ne " />
+              <span class="p008-hint">2- or 3-char LOC code, space-padded. e.g. ne · xxu · xxk · gw · fr</span>
+            </div>
+
+            <div class="p008-field">
+              <label>Language <span class="p008-pos">35-37</span></label>
+              <input type="text" id="prof-lang" class="input-field font-mono" maxlength="3" placeholder="dut" />
+              <span class="p008-hint">3-char MARC language code. e.g. dut · eng · fre · ger · spa</span>
+            </div>
+
+            <div class="p008-field">
+              <label>Target audience <span class="p008-pos">22</span></label>
+              <select id="prof-audience" class="select-field">
+                <option value=" ">  — Unknown or not specified</option>
+                <option value="e" selected>e — Adult</option>
+                <option value="a">a — Preschool</option>
+                <option value="b">b — Primary</option>
+                <option value="c">c — Pre-adolescent</option>
+                <option value="d">d — Adolescent</option>
+                <option value="f">f — Specialized</option>
+                <option value="g">g — General</option>
+                <option value="j">j — Juvenile</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+            <div class="p008-field">
+              <label>Form of item <span class="p008-pos">23</span></label>
+              <select id="prof-form" class="select-field">
+                <option value=" " selected>  — None / regular print</option>
+                <option value="a">a — Microfilm</option>
+                <option value="b">b — Microfiche</option>
+                <option value="c">c — Microopaque</option>
+                <option value="d">d — Large print</option>
+                <option value="e">e — Newspaper format</option>
+                <option value="f">f — Braille</option>
+                <option value="o">o — Online</option>
+                <option value="q">q — Direct electronic</option>
+                <option value="r">r — Regular print reproduction</option>
+                <option value="s">s — Electronic</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+            <div class="p008-field">
+              <label>Government publication <span class="p008-pos">28</span></label>
+              <select id="prof-govt" class="select-field">
+                <option value=" " selected>  — Not a government publication</option>
+                <option value="a">a — Autonomous/semi-autonomous body</option>
+                <option value="c">c — Multilocal</option>
+                <option value="f">f — Federal/national</option>
+                <option value="i">i — International intergovernmental</option>
+                <option value="l">l — Local</option>
+                <option value="m">m — Multistate</option>
+                <option value="o">o — Level unspecified</option>
+                <option value="s">s — State/provincial/territorial</option>
+                <option value="u">u — Unknown</option>
+                <option value="z">z — Other</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+            <div class="p008-field">
+              <label>Conference publication <span class="p008-pos">29</span></label>
+              <select id="prof-conf" class="select-field">
+                <option value="0" selected>0 — Not a conference publication</option>
+                <option value="1">1 — Conference publication</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+            <div class="p008-field">
+              <label>Festschrift <span class="p008-pos">30</span></label>
+              <select id="prof-fest" class="select-field">
+                <option value="0" selected>0 — Not a festschrift</option>
+                <option value="1">1 — Festschrift</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+            <div class="p008-field">
+              <label>Literary form <span class="p008-pos">33</span></label>
+              <select id="prof-litform" class="select-field">
+                <option value="0" selected>0 — Not fiction</option>
+                <option value="1">1 — Fiction</option>
+                <option value="d">d — Dramas</option>
+                <option value="e">e — Essays</option>
+                <option value="f">f — Novels</option>
+                <option value="h">h — Humor, satire</option>
+                <option value="i">i — Letters</option>
+                <option value="j">j — Short stories</option>
+                <option value="m">m — Mixed forms</option>
+                <option value="p">p — Poetry</option>
+                <option value="s">s — Speeches</option>
+                <option value="u">u — Unknown</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+            <div class="p008-field">
+              <label>Biography <span class="p008-pos">34</span></label>
+              <select id="prof-bio" class="select-field">
+                <option value=" " selected>  — No biographical information</option>
+                <option value="a">a — Autobiography</option>
+                <option value="b">b — Individual biography</option>
+                <option value="c">c — Collective biography</option>
+                <option value="d">d — Contains biographical information</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+            <div class="p008-field">
+              <label>Modified record <span class="p008-pos">38</span></label>
+              <select id="prof-modified" class="select-field">
+                <option value=" " selected>  — Not modified</option>
+                <option value="d">d — Dashed-on information omitted</option>
+                <option value="o">o — Completely romanized</option>
+                <option value="r">r — Romanized</option>
+                <option value="s">s — Shortened</option>
+                <option value="x">x — Missing characters</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+            <div class="p008-field">
+              <label>Cataloging source <span class="p008-pos">39</span></label>
+              <select id="prof-catsrc" class="select-field">
+                <option value="d" selected>d — Other</option>
+                <option value=" ">  — National bibliographic agency</option>
+                <option value="c">c — Cooperative cataloging program</option>
+                <option value="u">u — Unknown</option>
+                <option value="|">| — No attempt to code</option>
+              </select>
+            </div>
+
+          </div><!-- /p008-grid -->
+
+          <div class="action-row" style="margin-bottom:2rem;">
+            <button type="button" id="btn-prof-save" class="btn btn-primary">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Profile
+            </button>
+            <span id="prof-feedback" class="copy-feedback hidden"></span>
+          </div>
+
+          <!-- Saved profiles list -->
+          <div id="prof-list-wrap">
+            <div class="field-label" style="margin-bottom:.75rem;">Saved Profiles</div>
+            <div id="prof-list" class="custom-prompt-list">
+              <span class="cp-empty muted">No 008 profiles saved yet.</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Custom Prompts ══════════════════════════════════════════════════════ -->
       <section class="card" id="card-custom-prompts">
         <div class="card-header">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -157,7 +333,146 @@
     </div>
 
     <script>
-    /* ── Custom Prompts — config page ────────────────────────────────────── */
+    /* ── Shared escape helper ────────────────────────────────────────────────── */
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       008 Profiles — config page
+    ══════════════════════════════════════════════════════════════════════════ */
+    (function () {
+      const nameEl   = document.getElementById('prof-name');
+      const saveBtn  = document.getElementById('btn-prof-save');
+      const feedback = document.getElementById('prof-feedback');
+      const listEl   = document.getElementById('prof-list');
+
+      /* Map: profile field id → settings key */
+      const FIELD_MAP = {
+        'prof-place'    : 'place',
+        'prof-lang'     : 'language',
+        'prof-audience' : 'target_audience',
+        'prof-form'     : 'form_of_item',
+        'prof-govt'     : 'government_pub',
+        'prof-conf'     : 'conference_pub',
+        'prof-fest'     : 'festschrift',
+        'prof-litform'  : 'literary_form',
+        'prof-bio'      : 'biography',
+        'prof-modified' : 'modified_record',
+        'prof-catsrc'   : 'cataloging_source',
+      };
+
+      function showFeedback(msg, isError) {
+        feedback.textContent = msg;
+        feedback.style.color = isError ? 'var(--error)' : 'var(--success)';
+        feedback.classList.remove('hidden');
+        setTimeout(() => feedback.classList.add('hidden'), 3000);
+      }
+
+      function collectSettings() {
+        const s = {};
+        for (const [elId, key] of Object.entries(FIELD_MAP)) {
+          s[key] = document.getElementById(elId).value;
+        }
+        return s;
+      }
+
+      function populateForm(settings) {
+        for (const [elId, key] of Object.entries(FIELD_MAP)) {
+          const el = document.getElementById(elId);
+          if (settings[key] !== undefined) el.value = settings[key];
+        }
+      }
+
+      /* Render a compact summary of the profile's key settings */
+      function summarise(s) {
+        const parts = [];
+        if (s.place)    parts.push(`place: ${s.place.trim() || '—'}`);
+        if (s.language) parts.push(`lang: ${s.language.trim() || '—'}`);
+        if (s.target_audience && s.target_audience.trim())
+                        parts.push(`aud: ${s.target_audience}`);
+        if (s.form_of_item && s.form_of_item.trim())
+                        parts.push(`form: ${s.form_of_item}`);
+        if (s.cataloging_source) parts.push(`src: ${s.cataloging_source}`);
+        return parts.join(' · ') || 'No settings';
+      }
+
+      function renderList(profiles) {
+        listEl.innerHTML = '';
+        if (!profiles.length) {
+          listEl.innerHTML = '<span class="cp-empty muted">No 008 profiles saved yet.</span>';
+          return;
+        }
+        profiles.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'cp-list-item';
+          item.innerHTML = `
+            <div class="cp-list-item-header">
+              <span class="cp-list-name">${escHtml(p.name)}</span>
+              <div class="cp-list-actions">
+                <button class="btn-cp-edit" title="Load for editing"
+                        data-name="${escHtml(p.name)}">✏ Edit</button>
+                <button class="btn-cp-delete" title="Delete profile"
+                        data-name="${escHtml(p.name)}">✕</button>
+              </div>
+            </div>
+            <div class="cp-list-preview">${escHtml(summarise(p.settings || {}))}</div>`;
+          listEl.appendChild(item);
+        });
+
+        listEl.querySelectorAll('.btn-cp-edit').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const prof = profiles.find(p => p.name === btn.dataset.name);
+            if (!prof) return;
+            nameEl.value = prof.name;
+            populateForm(prof.settings || {});
+            nameEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            nameEl.focus();
+          });
+        });
+
+        listEl.querySelectorAll('.btn-cp-delete').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm(`Delete profile "${btn.dataset.name}"?`)) return;
+            const res  = await fetch(`/config/008-profiles/${encodeURIComponent(btn.dataset.name)}`,
+                                     { method: 'DELETE' });
+            const data = await res.json();
+            renderList(data);
+            showFeedback('Profile deleted.', false);
+          });
+        });
+      }
+
+      /* Load on page ready */
+      fetch('/config/008-profiles')
+        .then(r => r.json())
+        .then(renderList)
+        .catch(() => {});
+
+      /* Save */
+      saveBtn.addEventListener('click', async () => {
+        const name = nameEl.value.trim();
+        if (!name) { showFeedback('Please enter a profile name.', true); return; }
+
+        const settings = collectSettings();
+
+        const res  = await fetch('/config/008-profiles', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ name, settings }),
+        });
+        const data = await res.json();
+        if (data.error) { showFeedback(data.error, true); return; }
+
+        renderList(data);
+        showFeedback('Profile saved!', false);
+        nameEl.value = '';
+      });
+    })();
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       Custom Prompts — config page
+    ══════════════════════════════════════════════════════════════════════════ */
     (function () {
       const nameEl     = document.getElementById('cp-name');
       const textEl     = document.getElementById('cp-text');
@@ -212,11 +527,7 @@
         });
       }
 
-      function escHtml(str) {
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-      }
-
-      // Load on page ready
+      /* Load on page ready */
       fetch('/config/custom-prompts')
         .then(r => r.json())
         .then(renderList)
@@ -244,4 +555,4 @@
     })();
     </script>
 
-        {% endblock %}
+{% endblock %}

@@ -24,10 +24,13 @@ from flask import (
 
 from handlers.config import (
     add_custom_prompt,
+    add_008_profile,
+    delete_008_profile,
     credentials_exist,
     delete_custom_prompt,
     load_credentials,
     load_custom_prompts,
+    load_008_profiles,
     load_institution_config,
     save_credentials,
     save_institution_config,
@@ -124,14 +127,24 @@ def config_page():
 
 @app.route("/config/institution", methods=["POST"])
 def config_institution():
-    """Handles saving institution-specific settings (Name, Code, Contact)."""
+    """
+    Handles saving institution-specific settings (Code, Contact).
+    institution_name is preserved from the existing config — it is no longer
+    editable via the UI but kept in storage for backward compatibility.
+    """
     try:
-        institution_name = request.form.get("institution_name", "").strip()
+        # Preserve the existing institution_name; only update the other fields
+        inst = load_institution_config()
         institution_code = request.form.get("institution_code", "").strip()
         contact_name     = request.form.get("contact_name", "").strip()
         contact_email    = request.form.get("contact_email", "").strip()
 
-        save_institution_config(institution_name, institution_code, contact_name, contact_email)
+        save_institution_config(
+            inst["institution_name"],   # kept unchanged
+            institution_code,
+            contact_name,
+            contact_email,
+        )
 
         inst = load_institution_config()
         return render_template(
@@ -181,6 +194,37 @@ def config_credentials():
             local_version=read_local_version(),
             **inst,
         )
+
+
+# ── 008 Profile routes ────────────────────────────────────────────────────────
+
+@app.route("/config/008-profiles", methods=["GET"])
+def get_008_profiles():
+    """Return all saved 008 profiles as JSON."""
+    return jsonify(load_008_profiles())
+
+
+@app.route("/config/008-profiles", methods=["POST"])
+def save_008_profile():
+    """Add or overwrite a named 008 profile."""
+    data = request.get_json()
+    name     = (data.get("name") or "").strip()
+    settings = data.get("settings")
+
+    if not name:
+        return jsonify({"error": "Profile name is required."}), 400
+    if not isinstance(settings, dict):
+        return jsonify({"error": "Profile settings must be an object."}), 400
+
+    updated = add_008_profile(name, settings)
+    return jsonify(updated)
+
+
+@app.route("/config/008-profiles/<path:name>", methods=["DELETE"])
+def remove_008_profile(name):
+    """Delete an 008 profile by name."""
+    updated = delete_008_profile(name)
+    return jsonify(updated)
 
 
 # ── MARC / prompt routes ──────────────────────────────────────────────────────

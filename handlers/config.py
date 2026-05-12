@@ -1,3 +1,4 @@
+import json
 import base64
 from pathlib import Path
 from cryptography.fernet import Fernet
@@ -8,9 +9,10 @@ DATA_DIR = BASE_DIR / "static" / "data"
 CREDENTIALS_FILE = DATA_DIR / "credentials.txt"
 INSTITUTION_CONFIG_FILE = DATA_DIR / "institution_config.txt"
 CUSTOM_PROMPTS_FILE = DATA_DIR / "custom_prompts.txt"
+PROFILES_008_FILE = DATA_DIR / "008_profiles.json"
 
 # This key must remain the same to decrypt existing credentials
-SECRET_KEY = b'pL9xW8_vG3R2k0_N7mB4v_C6xZ1lK9jH8gF7dS5aQ4w=' 
+SECRET_KEY = b'pL9xW8_vG3R2k0_N7mB4v_C6xZ1lK9jH8gF7dS5aQ4w='
 
 # Default values
 DEFAULT_INSTITUTION_NAME = "Institution Name"
@@ -18,9 +20,13 @@ DEFAULT_INSTITUTION_CODE = "XXX"
 DEFAULT_CONTACT_NAME = "Staff Name"
 DEFAULT_CONTACT_EMAIL = "staff@email.com"
 
+
+# ── Credentials ───────────────────────────────────────────────────────────────
+
 def credentials_exist() -> bool:
     """Checks if the credentials file exists on disk."""
     return CREDENTIALS_FILE.exists()
+
 
 def save_credentials(client_id: str, client_secret: str) -> None:
     """Encrypt and save OCLC credentials."""
@@ -30,11 +36,12 @@ def save_credentials(client_id: str, client_secret: str) -> None:
     encrypted = f.encrypt(plaintext)
     CREDENTIALS_FILE.write_bytes(encrypted)
 
+
 def load_credentials() -> dict:
     """Decrypt and return OCLC credentials."""
     if not CREDENTIALS_FILE.exists():
         raise FileNotFoundError("OCLC Credentials not configured.")
-    
+
     f = Fernet(SECRET_KEY)
     try:
         decrypted = f.decrypt(CREDENTIALS_FILE.read_bytes())
@@ -46,11 +53,16 @@ def load_credentials() -> dict:
     except Exception as e:
         raise ValueError(f"Could not decrypt credentials. Please re-configure in settings. Error: {e}")
 
-def save_institution_config(institution_name: str, institution_code: str, contact_name: str, contact_email: str) -> None:
+
+# ── Institution config ────────────────────────────────────────────────────────
+
+def save_institution_config(institution_name: str, institution_code: str,
+                             contact_name: str, contact_email: str) -> None:
     """Save institution configuration to file."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     content = f"{institution_name}\n{institution_code}\n{contact_name}\n{contact_email}"
     INSTITUTION_CONFIG_FILE.write_text(content, encoding="utf-8")
+
 
 def load_institution_config() -> dict:
     """Load institution configuration from file."""
@@ -61,7 +73,7 @@ def load_institution_config() -> dict:
             "contact_name": DEFAULT_CONTACT_NAME,
             "contact_email": DEFAULT_CONTACT_EMAIL
         }
-    
+
     try:
         lines = INSTITUTION_CONFIG_FILE.read_text(encoding="utf-8").strip().splitlines()
         return {
@@ -77,8 +89,9 @@ def load_institution_config() -> dict:
             "contact_name": DEFAULT_CONTACT_NAME,
             "contact_email": DEFAULT_CONTACT_EMAIL
         }
-    
 
+
+# ── Custom prompts ────────────────────────────────────────────────────────────
 
 def load_custom_prompts() -> list:
     """Load custom prompts from file. Returns list of {name, text} dicts."""
@@ -117,3 +130,48 @@ def delete_custom_prompt(name: str) -> list:
     prompts = [p for p in load_custom_prompts() if p["name"].lower() != name.lower()]
     save_custom_prompts(prompts)
     return prompts
+
+
+# ── 008 Profiles ─────────────────────────────────────────────────────────────
+
+def load_008_profiles() -> list:
+    """
+    Load all 008 profiles from JSON file.
+    Returns a list of dicts: [{name, settings}, ...].
+    Each settings dict mirrors the build_008() keyword arguments
+    (excluding date1/date2 which are per-item).
+    """
+    if not PROFILES_008_FILE.exists():
+        return []
+    try:
+        data = json.loads(PROFILES_008_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def _save_008_profiles(profiles: list) -> None:
+    """Persist the full profile list to disk."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    PROFILES_008_FILE.write_text(json.dumps(profiles, ensure_ascii=False, indent=2),
+                                  encoding="utf-8")
+
+
+def add_008_profile(name: str, settings: dict) -> list:
+    """
+    Add or overwrite a named 008 profile.
+    Returns the updated list.
+    """
+    profiles = load_008_profiles()
+    # Remove existing entry with the same name (case-insensitive)
+    profiles = [p for p in profiles if p["name"].lower() != name.lower()]
+    profiles.append({"name": name, "settings": settings})
+    _save_008_profiles(profiles)
+    return profiles
+
+
+def delete_008_profile(name: str) -> list:
+    """Delete a profile by name. Returns the updated list."""
+    profiles = [p for p in load_008_profiles() if p["name"].lower() != name.lower()]
+    _save_008_profiles(profiles)
+    return profiles

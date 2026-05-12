@@ -229,7 +229,17 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 264 #1 (production/publication) – use RDA $b publisher, $c date
 - 264 #4 copyright year (always based on publication date unless stated on the text)
 - 300 (physical description) – pagination, illustrations, dimensions; determine if illustrations are present based on description and include in physical description
-- 336/337/338 (content, media, carrier type – RDA mandatory - use accodring to Cataloging Language and the content of the description)
+- 336/337/338 (content, media, carrier type – RDA mandatory -  use accodring to Cataloging Language and the content of the description - see [Type inhoud, medium en drager - Algemene inleiding
+](https://support.oclc.org/ggc/richtlijnen/php/showPresentation.php?id=13&ln=nl&par=mat.type_inhoud_medium_drager-algemene_inleiding))
+    When cataloging in Dutch (dut), always use the Dutch RDA terms for fields 336, 337, and 338, and append '/dut' to the source codes in subfield $2 (e.g., rdacontent/dut).
+    - dutch:
+        - 336: use rdacontent/dut
+        - 337: use rdamedium/dut
+        - 338: use rdacarrier/dut
+    - english:
+        - 336: use rdacontent
+        - 337: use rdamedium
+        - 338: use rdacarrier
 - 490 / 830 (series)
 - 500 (general notes as needed)
 - 504 (bibliography note) if the description mentions bibliography or sources, register, notes, etc.

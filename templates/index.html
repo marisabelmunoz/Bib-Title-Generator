@@ -25,6 +25,16 @@
               008 Fixed Field
               <span class="badge-008 ok" id="badge-008">40 ✓</span>
             </span>
+            <!-- 008 Profile picker -->
+            <div class="profile-008-row" id="profile-008-row">
+              <select id="prof-select" class="select-field">
+                <option value="">— Apply profile —</option>
+              </select>
+              <button type="button" id="btn-prof-apply" class="btn-apply"
+                      title="Prefill 008 form with selected profile" disabled>
+                ✦ Apply
+              </button>
+            </div>
             <button type="button" class="btn-edit-008" id="btn-edit-008">
               ✏ Edit
             </button>
@@ -756,6 +766,76 @@ function showLoading(on, text = '') {
 }
 
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   008 Profile Picker
+═══════════════════════════════════════════════════════════════════════════ */
+(function load008Profiles() {
+  const select   = document.getElementById('prof-select');
+  const applyBtn = document.getElementById('btn-prof-apply');
+
+  /* Settings key → 008 form element id */
+  const KEY_TO_ID = {
+    place             : 'p008-place',
+    language          : 'p008-lang',
+    target_audience   : 'p008-audience',
+    form_of_item      : 'p008-form',
+    government_pub    : 'p008-govt',
+    conference_pub    : 'p008-conf',
+    festschrift       : 'p008-fest',
+    literary_form     : 'p008-litform',
+    biography         : 'p008-bio',
+    modified_record   : 'p008-modified',
+    cataloging_source : 'p008-catsrc',
+  };
+
+  let _profiles = [];
+
+  fetch('/config/008-profiles')
+    .then(r => r.json())
+    .then(profiles => {
+      _profiles = profiles;
+      if (!profiles.length) return;
+
+      profiles.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value       = p.name;
+        opt.textContent = p.name;
+        select.appendChild(opt);
+      });
+    })
+    .catch(() => {/* silently skip */});
+
+  select.addEventListener('change', () => {
+    applyBtn.disabled = !select.value;
+  });
+
+  applyBtn.addEventListener('click', () => {
+    const prof = _profiles.find(p => p.name === select.value);
+    if (!prof || !prof.settings) return;
+
+    const s = prof.settings;
+    for (const [key, elId] of Object.entries(KEY_TO_ID)) {
+      if (s[key] === undefined) continue;
+      const el = document.getElementById(elId);
+      if (el) el.value = s[key];
+    }
+
+    // Open the edit panel so the user can see the applied values
+    const panel   = document.getElementById('panel-008');
+    const editBtn = document.getElementById('btn-edit-008');
+    if (!panel.classList.contains('open')) {
+      panel.classList.add('open');
+      editBtn.textContent = '✕ Close';
+      editBtn.classList.add('active');
+    }
+
+    update008();  // refresh the character strip
+
+    applyBtn.textContent = '✓ Applied';
+    setTimeout(() => { applyBtn.textContent = '✦ Apply'; }, 2000);
+  });
+})();
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Custom Prompt Chips
