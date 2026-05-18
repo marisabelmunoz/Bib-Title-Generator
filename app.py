@@ -36,8 +36,8 @@ from handlers.config import (
     save_institution_config,
 )
 from handlers.field_008 import build_008
-from handlers.oclc_api import create_bib_record, get_access_token
-from handlers.prompt import build_prompt
+from handlers.oclc_api import create_bib_record, get_access_token, get_bib_record, put_bib_record
+from handlers.prompt import build_prompt, build_update_prompt
 
 # updated 4/30/26
 
@@ -118,6 +118,12 @@ def index():
     )
 
 
+@app.route("/improve")
+def improve():
+    """Renders the Improve Record page."""
+    return render_template("update.html", local_version=read_local_version())
+
+
 @app.route("/config", methods=["GET"])
 def config_page():
     """Displays the configuration page with current settings."""
@@ -133,14 +139,13 @@ def config_institution():
     editable via the UI but kept in storage for backward compatibility.
     """
     try:
-        # Preserve the existing institution_name; only update the other fields
         inst = load_institution_config()
         institution_code = request.form.get("institution_code", "").strip()
         contact_name     = request.form.get("contact_name", "").strip()
         contact_email    = request.form.get("contact_email", "").strip()
 
         save_institution_config(
-            inst["institution_name"],   # kept unchanged
+            inst["institution_name"],
             institution_code,
             contact_name,
             contact_email,
@@ -207,7 +212,7 @@ def get_008_profiles():
 @app.route("/config/008-profiles", methods=["POST"])
 def save_008_profile():
     """Add or overwrite a named 008 profile."""
-    data = request.get_json()
+    data     = request.get_json()
     name     = (data.get("name") or "").strip()
     settings = data.get("settings")
 
@@ -303,7 +308,7 @@ def generate_prompt():
 
 @app.route("/submit-marc", methods=["POST"])
 def submit_marc():
-    """Submits the AI-generated MARCXML to OCLC WorldCat."""
+    """Submits the AI-generated MARCXML to OCLC WorldCat (creates new record)."""
     data    = request.get_json()
     marcxml = data.get("marcxml")
 
@@ -333,6 +338,128 @@ def submit_marc():
                 "message": (
                     "AI can make mistakes in the MARCXML. Please review the generated "
                     "record. You can also feed error to AI to correct."
+                ),
+                "detail":  response_text[:500],
+            }), 400
+
+        return jsonify({
+            "error":  f"OCLC Error {status_code}",
+            "detail": response_text[:500],
+        }), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ── Improve / Update record routes ────────────────────────────────────────────
+
+@app.route("/fetch-record", methods=["POST"])
+def fetch_record():
+    """
+    Retrieves an existing MARC record from WorldCat by OCN.
+    Returns the raw MARCXML so the front-end can display it.
+    """
+    data = request.get_json()
+    ocn  = (data.get("ocn") or "").strip()
+
+    if not ocn:
+        return jsonify({"error": "OCLC number (OCN) is required."}), 400
+
+    if not credentials_exist():
+        return jsonify({"error": "OCLC credentials not configured."}), 400
+
+    try:
+        creds = load_credentials()
+        token, _ = get_access_token(creds["client_id"], creds["client_secret"])
+        marcxml, status_code, _ = get_bib_record(ocn, token)
+
+        if status_code == 200:
+            return jsonify({"marcxml": marcxml, "ocn": ocn})
+
+        if status_code == 404:
+            return jsonify({"error": f"Record OCN {ocn} not found in WorldCat."}), 404
+
+        return jsonify({
+            "error":  f"OCLC returned HTTP {status_code}",
+            "detail": marcxml[:500],
+        }), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/generate-update-prompt", methods=["POST"])
+def generate_update_prompt():
+    """
+    Builds an AI prompt for improving an existing MARC record.
+    Accepts the current MARCXML, cataloging language, extra instructions,
+    and any additional metadata supplied by the cataloger.
+    """
+    data = request.get_json()
+
+    existing_marcxml      = data.get("existing_marcxml", "").strip()
+    cat_lang              = data.get("cat_lang", "eng")
+    extra_instructions    = data.get("extra_instructions", "")
+    additional_metadata   = data.get("additional_metadata", "")
+
+    if not existing_marcxml:
+        return jsonify({"error": "Existing MARCXML is required."}), 400
+
+    prompt_text = build_update_prompt(
+        existing_marcxml    = existing_marcxml,
+        extra_instructions  = extra_instructions,
+        cat_lang            = cat_lang,
+        additional_metadata = additional_metadata,
+    )
+
+    return jsonify({"prompt": prompt_text})
+
+
+@app.route("/update-marc", methods=["POST"])
+def update_marc():
+    """
+    Submits the improved MARCXML to OCLC WorldCat via PUT (replace record).
+    The OCN is extracted from the payload; if the record does not yet exist
+    WorldCat will create it.
+    """
+    data    = request.get_json()
+    ocn     = (data.get("ocn") or "").strip()
+    marcxml = (data.get("marcxml") or "").strip()
+
+    if not ocn:
+        return jsonify({"error": "OCN is required to update a record."}), 400
+    if not marcxml:
+        return jsonify({"error": "MARCXML is required."}), 400
+
+    if not credentials_exist():
+        return jsonify({"error": "OCLC credentials not configured."}), 400
+
+    try:
+        creds = load_credentials()
+        token, _ = get_access_token(creds["client_id"], creds["client_secret"])
+
+        response_text, status_code, _ = put_bib_record(ocn, marcxml, token)
+
+        if status_code in (200, 201):
+            ocn_match = re.search(
+                r'<controlfield tag="001">on?(\d+)</controlfield>', response_text
+            )
+            confirmed_ocn = ocn_match.group(1) if ocn_match else ocn
+
+            return jsonify({
+                "ocn":      confirmed_ocn,
+                "edit_url": (
+                    f"https://eur.share.worldcat.org/wms/cmnd/metadata/cataloging"
+                    f"/edit/bib/{confirmed_ocn}"
+                ),
+            })
+
+        if status_code == 400:
+            return jsonify({
+                "error":   f"OCLC Error {status_code} - Bad Request",
+                "message": (
+                    "The MARCXML was rejected. Review the improved record and check "
+                    "for structural errors.  You can feed the error back to the AI."
                 ),
                 "detail":  response_text[:500],
             }), 400
@@ -412,7 +539,6 @@ def perform_update():
     """Stream git pull output back to the browser line by line (SSE)."""
 
     def generate():
-        # Pre-flight checks
         if not git_available():
             yield "data: ERROR: Git is not installed on your computer.\n\n"
             yield "data: Please install Git from https://git-scm.com/downloads\n\n"
@@ -431,7 +557,6 @@ def perform_update():
 
         remote_ver = remote["version"]
 
-        # Run git pull
         yield "data: Starting update — please wait…\n\n"
         try:
             proc = subprocess.Popen(
@@ -468,7 +593,6 @@ def perform_update():
             yield "data: DONE_ERROR\n\n"
             return
 
-        # Write updated version.txt
         try:
             VERSION_FILE.write_text(remote_ver, encoding="utf-8")
             yield "data: \n\n"
@@ -487,9 +611,6 @@ def perform_update():
             "X-Accel-Buffering": "no",
         },
     )
-
-    # Note: git pull only updates tracked files.
-    # Untracked files (like /data, config.json) are left completely untouched.
 
 
 # ── About route ───────────────────────────────────────────────────────────────

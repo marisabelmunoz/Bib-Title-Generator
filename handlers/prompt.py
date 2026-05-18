@@ -1,8 +1,12 @@
 """
 handlers/prompt.py
-Builds the AI cataloging prompt.
+Builds AI cataloging prompts.
 
-When field_008_prebuilt is supplied (from the 008 Builder form) the prompt
+Two entry points:
+  build_prompt        — generates a new MARC21 record from raw metadata.
+  build_update_prompt — improves an existing MARC21 record retrieved from WorldCat.
+
+When field_008_prebuilt is supplied (from the 008 Builder form) build_prompt
 instructs the AI to copy it verbatim.  The legacy auto-construction path is
 retained as a fallback when no pre-built value is provided.
 """
@@ -10,7 +14,10 @@ retained as a fallback when no pre-built value is provided.
 from datetime import datetime
 from .config import load_institution_config
 
-# Mapping of place codes to country names for display
+# ---------------------------------------------------------------------------
+# Lookup tables
+# ---------------------------------------------------------------------------
+
 PLACE_LABELS = {
     "ne":  "Netherlands (ne)",
     "xxu": "United States (xxu)",
@@ -22,7 +29,6 @@ PLACE_LABELS = {
     "be":  "Belgium (be)",
     "au":  "Australia (au)",
     "cn":  "Canada (cn)",
-    # auto generate from: https://www.loc.gov/standards/codelists/countries.xml
 }
 
 BIOGRAPHY_LABELS = {
@@ -37,9 +43,13 @@ BIOGRAPHY_LABELS = {
 
 LANG_MAP = {
     "eng": "English",
-    "dut": "Dutch (Nederlands)"
+    "dut": "Dutch (Nederlands)",
 }
 
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
 
 def _build_prebuilt_008_section(field_008_prebuilt: str) -> str:
     """Return the prompt section used when the cataloger has pre-built the 008."""
@@ -139,10 +149,14 @@ Codes:
 - Language (008/35-37): analyze content to determine this"""
 
 
+# ---------------------------------------------------------------------------
+# Public API — new record
+# ---------------------------------------------------------------------------
+
 def build_prompt(biography, index_val, year, place, description, isbn, format_book,
                  cat_lang, extra_instructions, field_008_prebuilt=None):
     """
-    Build the full AI cataloging prompt.
+    Build the full AI cataloging prompt for creating a new MARC21 record.
 
     Parameters
     ----------
@@ -168,7 +182,6 @@ def build_prompt(biography, index_val, year, place, description, isbn, format_bo
         field_008_for_example = field_008_prebuilt
         section_008 = _build_prebuilt_008_section(field_008_prebuilt)
     else:
-        # Legacy auto-construction path
         field_008 = (
             f"{today_str}s{year_clean}    {place_clean}           "
             f"00{idx_clean}{bio_clean}LANG_CODE_HERE  d"
@@ -195,7 +208,7 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 049: `<subfield code="a">{institution_code}</subfield>`
 
 **Leader:**
-- Use `00000nam a22000007ci 4500` (positions 06=a, 07=m)
+- Use `00000nam a2200000Mci 4500` (positions 06=a, 07=m)
 - 17=c if ISBD punctuation is NOT present in the title you generate, otherwise 17=i if you omit ISBD punctuation
 
 **ISBN & Format (Field 020):**
@@ -229,25 +242,18 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 264 #1 (production/publication) – use RDA $b publisher, $c date
 - 264 #4 copyright year (always based on publication date unless stated on the text)
 - 300 (physical description) – pagination, illustrations, dimensions; determine if illustrations are present based on description and include in physical description
-- 336/337/338 (content, media, carrier type – RDA mandatory -  use accodring to Cataloging Language and the content of the description - see [Type inhoud, medium en drager - Algemene inleiding
-](https://support.oclc.org/ggc/richtlijnen/php/showPresentation.php?id=13&ln=nl&par=mat.type_inhoud_medium_drager-algemene_inleiding))
+- 336/337/338 (content, media, carrier type – RDA mandatory)
     When cataloging in Dutch (dut), always use the Dutch RDA terms for fields 336, 337, and 338, and append '/dut' to the source codes in subfield $2 (e.g., rdacontent/dut).
-    - dutch:
-        - 336: use rdacontent/dut
-        - 337: use rdamedium/dut
-        - 338: use rdacarrier/dut
-    - english:
-        - 336: use rdacontent
-        - 337: use rdamedium
-        - 338: use rdacarrier
+    - dutch: 336: rdacontent/dut · 337: rdamedium/dut · 338: rdacarrier/dut
+    - english: 336: rdacontent · 337: rdamedium · 338: rdacarrier
 - 490 / 830 (series)
 - 500 (general notes as needed)
 - 504 (bibliography note) if the description mentions bibliography or sources, register, notes, etc.
 - 546 (language note) if the description mentions the language of the content in a way that is not clear from the 008 analysis
 - 650/651 (subjects) — keep them as #4 for evaluation; you can also use FAST headings and LCSH
 - 655 (genre/form) if the description mentions a specific genre or form
-- 700/710 (other contributors) : if the role is mentioned, inlude it in the appropriate subfields ($4 and $e for role) Use this page as reference for MARC21 relator codes: https://www.loc.gov/marc/relators/relacode.html .
-
+- 700/710 (other contributors) : if the role is mentioned, include it in the appropriate subfields ($4 and $e for role)
+  Use https://www.loc.gov/marc/relators/relacode.html as reference for MARC21 relator codes.
 
 **Example format (MARCXML):**
 
@@ -281,5 +287,118 @@ Format: {format_book if isbn else "no isbn tag to include this, ignore"}
 
 
 **Return only the MARCXML record in a code block to copy.**
+"""
+    return prompt.strip()
+
+
+# ---------------------------------------------------------------------------
+# Public API — improve / update existing record
+# ---------------------------------------------------------------------------
+
+def build_update_prompt(
+    existing_marcxml: str,
+    extra_instructions: str,
+    cat_lang: str,
+    additional_metadata: str = "",
+) -> str:
+    """
+    Build an AI prompt for improving an existing MARC21 record retrieved from WorldCat.
+
+    The prompt instructs the AI to:
+      1. Start from the supplied MARCXML record verbatim.
+      2. Apply the cataloger's improvement instructions.
+      3. Return the complete, corrected record — never a partial diff.
+
+
+    Parameters
+    ----------
+    existing_marcxml : str
+        The raw MARCXML currently stored in WorldCat.
+    extra_instructions : str
+        Free-text instructions from the cataloger describing what to improve,
+        add, correct, or remove.
+    cat_lang : str
+        Cataloging language code ('eng' or 'dut').
+    additional_metadata : str
+        Any supplementary metadata the cataloger wants the AI to use
+        (e.g., publisher blurb, table of contents, back-cover text).
+    """
+    inst_config      = load_institution_config()
+    institution_code = inst_config["institution_code"]
+    lang_name        = LANG_MAP.get(cat_lang, "English")
+
+    extra_block = (
+        f"\n**Additional metadata / context supplied by cataloger:**\n{additional_metadata}\n"
+        if additional_metadata.strip()
+        else ""
+    )
+
+    instructions_block = (
+        extra_instructions.strip()
+        if extra_instructions.strip()
+        else "No specific instructions provided — review the record for completeness and correct any obvious errors."
+    )
+
+    prompt = f"""You are a professional cataloger following RDA guidelines and MARC21 formatting.
+
+Your task: **improve the existing MARC21 bibliographic record** provided below.
+
+---
+
+## Ground rules
+
+- **Start from the existing record** — do not discard data that is already correct.
+- **NEVER invent information** that is not present in the existing record or the additional metadata below.
+- **NEVER remove the control number** (field 001) or any other fixed fields unless explicitly instructed.
+- **Preserve the OCN** (001 / 035 fields) exactly as found.
+- The cataloging language is **{lang_name}** ({cat_lang}).
+  - Field 040 $b MUST be `{cat_lang}`.
+  - All new descriptive text (300, 500, 520 …) MUST be in {lang_name}.
+- **DO NOT modify** field 040, only add `$e rda` if not already present.
+- Return the **complete** improved record — not a diff, not a summary, not a partial extract.
+- When suggesting subject headings, stick to a maximum of 5 and always add them under `ind2=4` without $2 unless explicitly instructed.
+
+
+---
+
+## Improvement instructions from the cataloger
+
+{instructions_block}
+
+---
+
+## RDA fields to verify / complete (if not already present and applicable)
+
+- 020  ISBN — subfield $a for number, $q for format in parentheses
+- 040  Language of cataloging ($b {cat_lang}), description conventions ($e rda)
+- 049  Holdings symbol ({institution_code})
+- 100/110/111  Creator with correct RDA relationship designator
+- 245  Title statement — check indicators and punctuation
+- 250  Edition (only if stated in the resource)
+- 264 _1  Publication statement — RDA form
+- 264 _4  Copyright date
+- 300  Physical description in {lang_name} (pages/pagina's, illustrations/illustraties, cm)
+- 336/337/338  RDA content/media/carrier — use {'rdacontent/dut · rdamedium/dut · rdacarrier/dut' if cat_lang == 'dut' else 'rdacontent · rdamedium · rdacarrier'}
+- 490/830  Series
+- 500  General notes
+- 504  Bibliography note (if sources/register are mentioned)
+- 520  Summary note in {lang_name}
+- 546  Language note (if content language is ambiguous)
+- 650/651  Subject headings (#4 for local evaluation; FAST/LCSH welcome)
+- 655  Genre/form (if applicable)
+- 700/710  Added entries for contributors with relator codes
+  (reference: https://www.loc.gov/marc/relators/relacode.html)
+{extra_block}
+---
+
+## Existing MARCXML record to improve
+
+```xml
+{existing_marcxml.strip()}
+```
+
+---
+
+**Return only the complete improved MARCXML record in a single code block, ready to submit to the OCLC API.**
 """
     return prompt.strip()

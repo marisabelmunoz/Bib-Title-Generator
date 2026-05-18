@@ -15,23 +15,25 @@ except (ImportError, ValueError):
     from config import load_institution_config, load_credentials
 
 OCLC_TOKEN_URL = "https://oauth.oclc.org/token"
-OCLC_API_BASE = "https://metadata.api.oclc.org/worldcat/manage/bibs"
+OCLC_API_BASE  = "https://metadata.api.oclc.org/worldcat/manage/bibs"
+
 
 def sanitize_marcxml(marcxml: str) -> str:
     """
-    Sanitizes the MARCXML string by replacing non-breaking spaces (U+00A0) 
-    with standard ASCII spaces (U+0020). This ensures fixed-field lengths 
+    Sanitizes the MARCXML string by replacing non-breaking spaces (U+00A0)
+    with standard ASCII spaces (U+0020).  This ensures fixed-field lengths
     (like the 008) are calculated correctly by the OCLC validator.
     """
     if not marcxml:
         return marcxml
-    # Replace Unicode non-breaking space with standard space
     return marcxml.replace("\u00a0", " ")
+
 
 def get_user_agent():
     """Get user agent string with current contact email."""
     inst_config = load_institution_config()
     return f"EUR Metadata Services Agent - contact: {inst_config['contact_email']}"
+
 
 def get_access_token(client_id: str, client_secret: str) -> tuple[str, dict]:
     """
@@ -66,9 +68,13 @@ def get_access_token(client_id: str, client_secret: str) -> tuple[str, dict]:
 
     return data["access_token"], info
 
+
 def get_bib_record(ocn: str, token: str) -> tuple[str, int, str]:
     """
-    GET a bibliographic MARC record by OCN.
+    GET a bibliographic MARC record by OCN from WorldCat.
+
+    Endpoint: GET /worldcat/manage/bibs/{oclcNumber}
+
     Returns (marcxml_string, http_status_code, raw_response_text).
     """
     url = f"{OCLC_API_BASE}/{ocn}"
@@ -83,10 +89,16 @@ def get_bib_record(ocn: str, token: str) -> tuple[str, int, str]:
     )
     return response.text, response.status_code, response.text
 
+
 def put_bib_record(ocn: str, marcxml: str, token: str) -> tuple[str, int, str]:
     """
-    PUT (replace) a bibliographic MARC record by OCN.
+    PUT (replace) a bibliographic MARC record by OCN in WorldCat.
+
+    Endpoint: PUT /worldcat/manage/bibs/{oclcNumber}
+
+    If the record does not exist a new record will be created.
     Automatically sanitizes whitespace before sending.
+    Returns (marcxml_string, http_status_code, raw_response_text).
     """
     sanitized_xml = sanitize_marcxml(marcxml)
     url = f"{OCLC_API_BASE}/{ocn}"
@@ -103,10 +115,15 @@ def put_bib_record(ocn: str, marcxml: str, token: str) -> tuple[str, int, str]:
     )
     return response.text, response.status_code, response.text
 
+
 def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
     """
     Create a new bibliographic record in WorldCat.
+
+    Endpoint: POST /worldcat/manage/bibs
+
     Automatically sanitizes whitespace before sending.
+    Returns (marcxml_string, http_status_code, raw_response_text).
     """
     sanitized_xml = sanitize_marcxml(marcxml)
     headers = {
@@ -115,17 +132,18 @@ def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
         "Accept": "application/marcxml+xml",
         "User-Agent": get_user_agent(),
     }
-    
+
     try:
         response = requests.post(
-            OCLC_API_BASE, 
-            data=sanitized_xml.encode('utf-8'), 
-            headers=headers, 
-            timeout=30
+            OCLC_API_BASE,
+            data=sanitized_xml.encode("utf-8"),
+            headers=headers,
+            timeout=30,
         )
         return response.text, response.status_code, response.text
     except Exception as e:
         return str(e), 500, str(e)
+
 
 def _escape_xml(text: str) -> str:
     """Escape special characters for XML content."""
@@ -138,6 +156,7 @@ def _escape_xml(text: str) -> str:
         .replace("'", "&apos;")
     )
 
+
 # Valid MARC $2 thesaurus codes accepted by OCLC WorldCat.
 _VALID_SOURCE_CODES: dict[str, str] = {
     "aat": "aat", "gtt": "gtt", "fast": "fast", "lcsh": "lcsh",
@@ -147,8 +166,9 @@ _VALID_SOURCE_CODES: dict[str, str] = {
     "idsbb": "idsbb", "jurivoc": "jurivoc", "kiss": "kiss",
     "lacnaf": "lacnaf", "lcdgt": "lcdgt", "local": "local",
     "naf": "naf", "nta": "nta", "rero": "rero", "swd": "swd",
-    "tgn": "tgn", "ulan": "ulan"
+    "tgn": "tgn", "ulan": "ulan",
 }
+
 
 def _normalise_source_code(raw: str) -> str:
     """Map a caller-supplied vocabulary label to its canonical MARC $2 code."""
@@ -160,17 +180,18 @@ def _normalise_source_code(raw: str) -> str:
         )
     return _VALID_SOURCE_CODES[key]
 
+
 def add_terms_to_marcxml(marcxml: str, terms: list[dict]) -> str:
     """Insert new subject heading datafields into a MARC XML record string."""
     new_fields_parts = []
     for term_data in terms:
-        tag = term_data.get("field", "650")
-        ind1 = term_data.get("ind1", " ")
-        ind2 = term_data.get("ind2", "7")
+        tag       = term_data.get("field", "650")
+        ind1      = term_data.get("ind1", " ")
+        ind2      = term_data.get("ind2", "7")
         term_text = _escape_xml(term_data.get("term", ""))
-        uri = _escape_xml(term_data.get("uri", ""))
+        uri       = _escape_xml(term_data.get("uri", ""))
 
-        raw_source = term_data.get("source_label", "")
+        raw_source   = term_data.get("source_label", "")
         source_label = _escape_xml(_normalise_source_code(raw_source))
 
         field_xml = (
@@ -178,11 +199,11 @@ def add_terms_to_marcxml(marcxml: str, terms: list[dict]) -> str:
             f'    <subfield code="a">{term_text}</subfield>\n'
             f'    <subfield code="2">{source_label}</subfield>\n'
         )
-        
+
         if uri:
             field_xml += f'    <subfield code="1">{uri}</subfield>\n'
-        
-        field_xml += f"  </datafield>"
+
+        field_xml += "  </datafield>"
         new_fields_parts.append(field_xml)
 
     if not new_fields_parts:

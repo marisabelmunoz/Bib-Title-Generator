@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block title %}Improve Record — MARC21 Cataloguing Tool{% endblock %}
+
+{% block content %}
+
+<div class="content-col">
+
+  <!-- ── Step 1 — Load record ────────────────────────────────────────────── -->
+  <section class="card" id="step-load">
+    <div class="card-header">
+      <span class="step-badge">1</span>
+      <h2>Load Record from WorldCat</h2>
+    </div>
+    <div class="card-body">
+
+      <div class="field-grid">
+        <div class="field-group">
+          <label for="ocn-input" class="field-label">OCLC Number (OCN)</label>
+          <div class="field-hint">Enter the numeric OCLC control number of the record you want to improve.</div>
+          <input type="text" id="ocn-input" class="input-field font-mono"
+            placeholder="e.g. 970988303" />
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button id="btn-fetch" class="btn btn-primary">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+            <path d="M16 6l-4-4-4 4m4-4v13"/>
+          </svg>
+          Fetch Record
+        </button>
+      </div>
+
+      <!-- Fetched record display -->
+      <div id="fetched-record-wrap" class="hidden" style="margin-top:1.25rem;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+          <label class="field-label" style="margin:0;">Current MARCXML
+            <span id="fetched-ocn-badge" class="ocn-number" style="font-size:0.72rem; margin-left:0.5rem;"></span>
+          </label>
+          <button id="btn-copy-current" class="btn btn-ghost btn-sm" title="Copy current MARCXML to clipboard">
+            Copy
+          </button>
+        </div>
+        <textarea id="fetched-marcxml" class="textarea-field font-mono" rows="14" readonly
+          placeholder="Retrieved MARCXML will appear here…"></textarea>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Step 2 — Build improvement prompt ───────────────────────────────── -->
+  <section class="card" id="step-prompt">
+    <div class="card-header">
+      <span class="step-badge">2</span>
+      <h2>Generate Improvement Prompt for AI</h2>
+    </div>
+    <div class="card-body">
+
+      <div class="field-grid">
+
+        <div class="field-group" style="grid-column: span 2;">
+          <label for="cat_lang_upd" class="field-label">Language of Cataloging</label>
+          <select id="cat_lang_upd" class="select-field">
+            <option value="eng">English (eng)</option>
+            <option value="dut">Dutch (dut / nl)</option>
+          </select>
+        </div>
+
+        <div class="field-group" style="grid-column: span 2;">
+          <label for="additional-metadata" class="field-label">Additional Metadata / Context
+            <span class="field-optional">— optional</span>
+          </label>
+          <div class="field-hint">Provide any extra information the AI should use to enrich the record — publisher blurb, table of contents, back-cover text, NUR code, page count, dimensions, etc.</div>
+          <textarea id="additional-metadata" class="textarea-field" rows="4"
+            placeholder="e.g. 'xii, 312 pages, 24 cm. Includes bibliography and index. NUR 740.'"></textarea>
+        </div>
+
+        <div class="field-group" style="grid-column: span 2;">
+          <label for="improvement-instructions" class="field-label">Improvement Instructions for AI</label>
+          <div class="field-hint">Tell the AI exactly what to fix, add, or remove. Be as specific as needed.</div>
+          <textarea id="improvement-instructions" class="textarea-field" rows="4"
+            placeholder="Examples:&#10;• Add FAST subject headings based on the title and description.&#10;• Correct the 300 field to Dutch terminology (pagina's, cm).&#10;• Add field 504 — the record mentions a bibliography.&#10;• Update field 040 to include $e rda."></textarea>
+        </div>
+
+        <!-- Custom prompt chips — loaded from server -->
+        <div id="custom-prompts-section-upd" class="field-group" style="grid-column: span 2; margin-top: 0.25rem; display: none;">
+          <label class="field-label">Reusable Prompts
+            <span class="field-optional">— click to append to Instructions</span>
+          </label>
+          <div id="custom-prompt-chips-upd" class="custom-prompt-chips"></div>
+        </div>
+
+      </div>
+
+      <div class="card-actions">
+        <button id="btn-generate-update" class="btn btn-primary">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2v-2M16 4h2a2 2 0 012 2v4M16 4l1 1"/>
+            <rect x="8" y="2" width="8" height="4" rx="1"/>
+            <path d="M21 14l-3 3h-7l-3-3"/>
+          </svg>
+          Copy Improvement Prompt for AI
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Step 3 — Paste improved record & submit ─────────────────────────── -->
+  <section class="card" id="step-submit">
+    <div class="card-header">
+      <span class="step-badge">3</span>
+      <h2>Paste Improved MARCXML &amp; Update</h2>
+    </div>
+    <div class="card-body">
+
+      <div class="field-group">
+        <label for="improved-marcxml" class="field-label">Improved MARCXML from AI</label>
+        <div class="field-hint">Paste the complete record returned by the AI. The OCN in field 001 will be used to PUT the update to WorldCat.</div>
+        <textarea id="improved-marcxml" class="textarea-field font-mono" rows="14"
+          placeholder='<record xmlns="http://www.loc.gov/MARC21/slim">&#10;  <leader>…</leader>&#10;  <controlfield tag="001">ocn970988303</controlfield>&#10;  …&#10;</record>'></textarea>
+      </div>
+
+      <div class="card-actions" style="gap: 0.75rem; flex-wrap: wrap;">
+        <button id="btn-update" class="btn btn-success">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v13"/>
+          </svg>
+          Update Record in WorldCat
+        </button>
+        <span class="field-hint" style="align-self:center; margin:0;">
+          The existing WorldCat record will be replaced via PUT.
+        </span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Result ──────────────────────────────────────────────────────────── -->
+  <section class="card hidden" id="step-result">
+    <div class="card-header">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <h2>Update Status</h2>
+    </div>
+    <div id="result-body" class="card-body"></div>
+  </section>
+
+</div><!-- /content-col -->
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="overlay hidden">
+  <div class="spinner-container">
+    <div class="spinner"></div>
+    <p id="loading-text">Processing…</p>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Helpers
+═══════════════════════════════════════════════════════════════════════════ */
+function showLoading(on, text = '') {
+  const overlay = document.getElementById('loading-overlay');
+  if (on) {
+    document.getElementById('loading-text').textContent = text;
+    overlay.classList.remove('hidden');
+  } else {
+    overlay.classList.add('hidden');
+  }
+}
+
+function showResult(type, html) {
+  const section = document.getElementById('step-result');
+  document.getElementById('result-body').innerHTML =
+    `<div class="result-msg result-${type}">${html}</div>`;
+  section.classList.remove('hidden');
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Step 1 — Fetch record
+═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('btn-fetch').addEventListener('click', async () => {
+  const ocn = document.getElementById('ocn-input').value.trim();
+
+  if (!ocn) {
+    alert('Please enter an OCLC number first.');
+    return;
+  }
+
+  showLoading(true, 'Fetching record from WorldCat…');
+
+  try {
+    const res  = await fetch('/fetch-record', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ocn }),
+    });
+    const data = await res.json();
+    showLoading(false);
+
+    if (data.error) {
+      alert('Error: ' + data.error + (data.detail ? '\n\n' + data.detail : ''));
+      return;
+    }
+
+    // Show the retrieved XML
+    document.getElementById('fetched-marcxml').value = data.marcxml;
+    document.getElementById('fetched-ocn-badge').textContent = 'OCN ' + data.ocn;
+    document.getElementById('fetched-record-wrap').classList.remove('hidden');
+    document.getElementById('fetched-record-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (err) {
+    showLoading(false);
+    alert('Network error: ' + err.message);
+  }
+});
+
+/* Copy current MARCXML */
+document.getElementById('btn-copy-current').addEventListener('click', async () => {
+  const xml = document.getElementById('fetched-marcxml').value.trim();
+  if (!xml) return;
+  await navigator.clipboard.writeText(xml);
+  const btn = document.getElementById('btn-copy-current');
+  btn.textContent = '✓ Copied';
+  setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Step 2 — Generate improvement prompt
+═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('btn-generate-update').addEventListener('click', async () => {
+  const existing_marcxml    = document.getElementById('fetched-marcxml').value.trim();
+  const cat_lang            = document.getElementById('cat_lang_upd').value;
+  const extra_instructions  = document.getElementById('improvement-instructions').value.trim();
+  const additional_metadata = document.getElementById('additional-metadata').value.trim();
+
+  if (!existing_marcxml) {
+    alert('Please fetch a record first (Step 1) before generating the prompt.');
+    return;
+  }
+
+  showLoading(true, 'Building improvement prompt…');
+
+  try {
+    const res  = await fetch('/generate-update-prompt', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        existing_marcxml,
+        cat_lang,
+        extra_instructions,
+        additional_metadata,
+      }),
+    });
+    const data = await res.json();
+
+    if (data.prompt) {
+      await navigator.clipboard.writeText(data.prompt);
+      const btn = document.getElementById('btn-generate-update');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ Prompt Copied!';
+      setTimeout(() => { btn.innerHTML = orig; }, 2500);
+    } else if (data.error) {
+      alert('Error: ' + data.error);
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    showLoading(false);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Step 3 — Submit improved record via PUT
+═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('btn-update').addEventListener('click', async () => {
+  const marcxml = document.getElementById('improved-marcxml').value.trim();
+
+  if (!marcxml) {
+    alert('Please paste the improved MARCXML record first.');
+    return;
+  }
+
+  // Extract OCN from the pasted XML (field 001)
+  const ocnMatch = marcxml.match(/<controlfield[^>]+tag="001"[^>]*>on?(\d+)<\/controlfield>/i);
+  if (!ocnMatch) {
+    alert(
+      'Could not find an OCLC number in field 001 of the pasted record.\n\n' +
+      'Make sure the record contains a <controlfield tag="001"> with the OCN (e.g. ocn970988303).'
+    );
+    return;
+  }
+  const ocn = ocnMatch[1];
+
+  if (!confirm(`This will replace the WorldCat record for OCN ${ocn}.\n\nProceed?`)) {
+    return;
+  }
+
+  showLoading(true, 'Updating record in WorldCat…');
+
+  try {
+    const res  = await fetch('/update-marc', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ocn, marcxml }),
+    });
+    const data = await res.json();
+    showLoading(false);
+
+    if (data.error) {
+      showResult('error',
+        `<strong>Error:</strong> ${data.error}` +
+        (data.message ? `<br><small>${data.message}</small>` : '') +
+        (data.detail  ? `<br><code style="font-size:0.78rem;white-space:pre-wrap;">${data.detail}</code>` : '')
+      );
+    } else if (data.ocn) {
+      showResult('success', `
+        <strong>Success!</strong> Record updated in WorldCat.<br>
+        OCN: <strong>${data.ocn}</strong><br><br>
+        <a href="${data.edit_url}" target="_blank" class="btn btn-outline btn-sm">
+          Open in WorldCat Metadata
+        </a>
+      `);
+    } else {
+      showResult('warn', 'Record submitted, but the OCN could not be confirmed from the response.');
+    }
+  } catch (err) {
+    showLoading(false);
+    showResult('error', 'Network error: ' + err.message);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Custom Prompt Chips (reuses /config/custom-prompts endpoint)
+═══════════════════════════════════════════════════════════════════════════ */
+(function loadCustomPromptChips() {
+  fetch('/config/custom-prompts')
+    .then(r => r.json())
+    .then(prompts => {
+      if (!prompts || !prompts.length) return;
+      const section   = document.getElementById('custom-prompts-section-upd');
+      const container = document.getElementById('custom-prompt-chips-upd');
+      const targetEl  = document.getElementById('improvement-instructions');
+      section.style.display = '';
+
+      prompts.forEach(p => {
+        const chip = document.createElement('button');
+        chip.type      = 'button';
+        chip.className = 'custom-prompt-chip';
+        chip.title     = p.text;
+        chip.textContent = p.name;
+
+        chip.addEventListener('click', () => {
+          const current = targetEl.value.trim();
+          targetEl.value = current ? current + '\n' + p.text : p.text;
+          chip.classList.toggle('chip-active');
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        container.appendChild(chip);
+      });
+    })
+    .catch(() => { /* silently skip if API unavailable */ });
+})();
+</script>
+
+{% endblock %}

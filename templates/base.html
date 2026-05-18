@@ -7,150 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='bibpromp.ico') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='bibpromp.ico') }}">
-    <style>
-        /* ── Version badge in header ── */
-        .version-badge {
-            font-size: 0.72rem;
-            font-weight: 600;
-            font-family: var(--font-mono);
-            color: var(--muted);
-            background: var(--teal-lt);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            white-space: nowrap;
-            cursor: default;
-            transition: background 0.15s, border-color 0.15s, color 0.15s;
-        }
-        /* Clickable when update is available */
-        .version-badge.has-update {
-            background: var(--warn-bg);
-            border-color: var(--warn);
-            color: var(--warn);
-            cursor: pointer;
-            animation: badge-pulse 2.5s ease-in-out infinite;
-        }
-        @keyframes badge-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--warn) 30%, transparent); }
-            50%       { box-shadow: 0 0 0 5px transparent; }
-        }
-
-        /* ── Update banner ── */
-        #update-banner {
-            display: none;
-            background: var(--warn-bg);
-            border-bottom: 2px solid var(--warn);
-            padding: 0.55rem 1.5rem;
-        }
-        #update-banner.visible {
-            display: block;
-        }
-        .update-banner-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            font-size: 0.85rem;
-            color: var(--warn);
-        }
-        .update-banner-inner strong {
-            font-weight: 700;
-        }
-        .update-banner-inner .spacer { flex: 1; }
-
-        /* ── Update modal ── */
-        #update-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.45);
-            z-index: 5000;
-            align-items: center;
-            justify-content: center;
-        }
-        #update-modal.visible {
-            display: flex;
-        }
-        .update-modal-box {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            width: min(600px, 94vw);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .update-modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.9rem 1.25rem;
-            background: var(--teal-lt);
-            border-bottom: 1px solid var(--border-light);
-        }
-        .update-modal-header h3 {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-        .update-modal-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--muted);
-            font-size: 1.2rem;
-            line-height: 1;
-            padding: 0.1rem 0.3rem;
-            border-radius: 4px;
-            transition: background 0.15s;
-        }
-        .update-modal-close:hover { background: var(--border-light); }
-
-        .update-modal-body {
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .update-versions {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
-        .update-versions span { font-family: var(--font-mono); color: var(--text); font-weight: 600; }
-
-        /* Terminal log */
-        #update-log {
-            display: none;
-            background: #0e1c1a;
-            color: #a8d8d2;
-            font-family: var(--font-mono);
-            font-size: 0.78rem;
-            line-height: 1.6;
-            border-radius: var(--radius-sm);
-            padding: 0.85rem 1rem;
-            max-height: 220px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        #update-log.visible { display: block; }
-        #update-log .log-error  { color: #f48071; }
-        #update-log .log-ok     { color: #5ee0a0; }
-        #update-log .log-warn   { color: #f0c060; }
-
-        .update-modal-footer {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
-            padding: 0.9rem 1.25rem;
-            border-top: 1px solid var(--border-light);
-        }
-    </style>
 </head>
 <body>
 
@@ -169,7 +25,8 @@
 <header class="site-header">
     <div class="header-inner">
         <div class="header-brand">
-            <span class="brand-mark">Bib Prompt Generator</span>
+                        <img src = "/static/book.svg" style="width: 50px ;" alt="Book Icon">
+ <span class="brand-mark">Bib Prompt Generator</span>
             <!-- Version badge; populated by JS so it works on every page -->
             <span class="version-badge" id="version-badge"
                   title="Click to check for updates"
@@ -179,6 +36,7 @@
         </div>
         <nav class="header-nav">
             <a href="/" class="nav-link">Catalog</a>
+            <a href="/improve" class="nav-link">Improve Record</a>
             <a href="/config" class="nav-link">Configuration</a>
             <a href="/about" class="nav-link">About</a>
         </nav>
@@ -228,16 +86,19 @@
         <div class="footer-info">
             <p class="footer-brand">Public Use Tool — Metadata Services</p>
             <p><strong>Developed by:</strong> Marisabel Munoz<br>
-            <strong>Email:</strong> <a href="mailto:Marisabel.munoz@eur.nl">Marisabel.munoz@eur.nl</a><br>
+            <strong>Email:</strong> <a href="mailto:marisabel.munoz@eur.nl">marisabel.munoz@eur.nl</a><br>
             <strong>Library:</strong> Erasmus University Library</p>
-            <p style="font-size: 0.75rem;">Created with Claude AI &amp; Gemini AI</p>
+            <p style="font-size: 0.75rem;">Created with Claude AI &amp; Gemini AI and a passion for Cataloging.</p>
+            <p>Source code available on <a href="https://github.com/marisabelmunoz/Bib-Title-Generator" target="_blank">GitHub</a>.</p>
         </div>
 
         <div class="footer-disclaimer">
-            <strong>Disclaimer:</strong> This tool generates prompts for external AI processing.
+            <strong class="important">Disclaimer:</strong> This tool generates prompts for external AI processing.
             Even with explicit constraints, AI can produce errors or "hallucinations."
-            Users are <u>strictly required</u> to verify all MARC21 data before OCLC submission.
-            The cataloger remains the final authority.
+            Users are <u>strictly required</u> to verify all MARC21 data before OCLC submission. 
+            <p style="border-bottom: 1px solid var(--teal);margin: 1rem auto;"></p>
+            <p><span class="important">All new records will load as <span class="ocn-number">LDR/17 = M</span> in order to then be verified by the cataloger.</span>
+            The cataloger remains the final authority.</p>  
         </div>
     </div>
 </footer>
