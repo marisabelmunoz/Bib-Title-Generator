@@ -354,7 +354,7 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
 - The cataloging language is **{lang_name}** ({cat_lang}).
   - Field 040 $b MUST be `{cat_lang}`.
   - All new descriptive text (300, 500, 520 …) MUST be in {lang_name}.
-- **DO NOT modify** field 040, only change or add `$e rda` if not already present.
+- IMPORTANT SO AS NOT TO BREAK THE RECORD: **Leave field 040 exactly as found** — do not add, delete, or change any subfield or institution code under any circumstance. The only allowed action is to add $e rda if it is missing; otherwise, copy the field verbatim.
 - Return the **complete** improved record — not a diff, not a summary, not a partial extract.
 - When suggesting subject headings, stick to a maximum of 5 and always add them under `ind2=4` without $2 unless explicitly instructed.
 
@@ -367,8 +367,18 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
 
 ---
 
-## RDA fields to verify / complete (if not already present and applicable)
+**Cataloging Language & Translation Instructions:**
+- The language of cataloging is: **{lang_name}** ({cat_lang}).
+- **Field 040 $b** MUST be set to `{cat_lang}`.
+- All descriptive text, notes, and physical descriptions (Field 300) MUST be in {lang_name}.
+- **Terminology Examples for Field 300:**
+  - If English: Use "pages", "illustrations", "color", "cm".
+  - If Dutch: Use "pagina's", "illustraties", "kleur", "cm".
+- Use {lang_name} for all general notes (500) and summary notes (520).
 
+
+## RDA fields to verify / complete (if not already present and applicable)
+- 072 #7 (nur value ONLY if given on the description!)
 - 020  ISBN — subfield $a for number, $q for format in parentheses
 - 040  Language of cataloging ($b {cat_lang}), description conventions ($e rda)
 - 049  Holdings symbol ({institution_code})
@@ -390,6 +400,11 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
   (reference: https://www.loc.gov/marc/relators/relacode.html)
 {extra_block}
 ---
+
+**Specific User Instructions:**
+{extra_instructions if extra_instructions else "None provided."}
+
+
 
 ## Existing MARCXML record to improve
 
