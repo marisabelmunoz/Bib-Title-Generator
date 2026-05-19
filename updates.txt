@@ -4,3 +4,4 @@
 2026-04-30 : <b>Version 1.5</b> - users are now able to update the local code base automatically.
 2026-05-12 : Added 008 profiles and removed the Institution name from config (it was just for view.)
 2026-05-18 : New Version 2.0 - Added a new section to improve existing records via GET and PUT actions on the OCLC API. 
+2026-05-19 : Updated some bugs on prompt.
