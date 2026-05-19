@@ -1,5 +1,6 @@
 # Bibliographic Record AI Prompt Generator
 
+![screenshoot](screenshoot.png)
 
 ## Usage:
 
@@ -40,7 +41,3 @@ The script runs on a python flask server locally.
 - User is responsible for verifying accuracy and correcting mistakes.
 
 
-## Todo
-- [ ] [rda relators](https://help-nl.oclc.org/Metadata_Services/GGC/Richtlijnen/RDA_-_Resource_Description_and_Access/Relatiecodes_-_Algemene_inleiding/5.Engelse_en_Nederlandse_betekenis_van_relatiecodes_en_toelichting) - add to instructions to use this for person
-- [X] Add profiles for the 008 so we can always use what we need (i.e. biofraphies should always have 23 = r, 34 = 1, 33 - 0, etc. )
-- [x] Add the auto update via api (already tested)
