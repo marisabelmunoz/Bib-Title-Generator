@@ -354,7 +354,7 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
 - The cataloging language is **{lang_name}** ({cat_lang}).
   - Field 040 $b MUST be `{cat_lang}`.
   - All new descriptive text (300, 500, 520 …) MUST be in {lang_name}.
-- **DO NOT modify** field 040, only add `$e rda` if not already present.
+- **DO NOT modify** field 040, only change or add `$e rda` if not already present.
 - Return the **complete** improved record — not a diff, not a summary, not a partial extract.
 - When suggesting subject headings, stick to a maximum of 5 and always add them under `ind2=4` without $2 unless explicitly instructed.
 
