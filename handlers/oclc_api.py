@@ -1,11 +1,14 @@
 """
 EUR Metadata Services — OCLC API Module
 Handles OAuth token retrieval and MARC record GET/PUT/CREATE operations.
+Includes automatic addition of missing $b subfields for RDA fields 336,337,338.
 """
 
 import re
-import requests
+import json
 from pathlib import Path
+from lxml import etree
+import requests
 
 # Use a relative import since config.py is in the same 'handlers' folder
 try:
@@ -17,6 +20,143 @@ except (ImportError, ValueError):
 OCLC_TOKEN_URL = "https://oauth.oclc.org/token"
 OCLC_API_BASE  = "https://metadata.api.oclc.org/worldcat/manage/bibs"
 
+# Namespace for MARC21
+MARC_NS = "http://www.loc.gov/MARC21/slim"
+
+# Path to rda_types.json
+RDA_FILE = Path(__file__).parent.parent / "static" / "rda_types.json"
+
+# Load RDA data once
+def _load_rda_data():
+    if not RDA_FILE.exists():
+        return {}
+    with open(RDA_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+RDA_DATA = _load_rda_data()
+
+
+def _normalize_term(term):
+    """Lowercase and strip for comparison."""
+    return term.lower().strip()
+
+
+def _get_rda_entry(tag, term, lang="eng"):
+    """Return the RDA entry for given tag and term in the specified language."""
+    if tag not in RDA_DATA:
+        return None
+    lang_data = RDA_DATA[tag].get(lang, [])
+    norm_term = _normalize_term(term)
+    for entry in lang_data:
+        if _normalize_term(entry.get("term", "")) == norm_term:
+            return entry
+    return None
+
+
+def _determine_cataloging_language(marcxml):
+    """Extract 040 $b from the MARCXML to determine cataloging language."""
+    try:
+        parser = etree.XMLParser(recover=False, resolve_entities=False)
+        tree = etree.fromstring(marcxml.encode("utf-8"), parser=parser)
+    except Exception:
+        return "eng"  # default
+
+    # Find 040 field
+    for elem in tree.iter():
+        if _strip_ns(elem.tag) == "datafield" and elem.get("tag") == "040":
+            for sf in elem.findall(_tag("subfield")):
+                if sf.get("code") == "b":
+                    lang_code = (sf.text or "").strip().lower()
+                    if lang_code in ("dut", "nl"):
+                        return "dut"
+    return "eng"
+
+
+def _strip_ns(tag):
+    return tag.replace(f"{{{MARC_NS}}}", "")
+
+
+def _tag(local):
+    return f"{{{MARC_NS}}}{local}"
+
+def _add_missing_rda_subfield_b(marcxml):
+    """
+    Parse MARCXML and add missing $b subfields to 336,337,338 fields.
+    Uses rda_types.json to look up the code based on $a and cataloging language.
+    Inserts $b immediately after $a.
+    """
+    if not RDA_DATA:
+        return marcxml
+
+    try:
+        parser = etree.XMLParser(recover=False, resolve_entities=False)
+        tree = etree.fromstring(marcxml.encode("utf-8"), parser=parser)
+    except Exception:
+        return marcxml
+
+    lang = _determine_cataloging_language(marcxml)
+    modified = False
+
+    for datafield in tree.iter():
+        if _strip_ns(datafield.tag) != "datafield":
+            continue
+        tag = datafield.get("tag", "")
+        if tag not in ("336", "337", "338"):
+            continue
+
+        # Collect subfields
+        subfields = list(datafield.iterchildren(_tag("subfield")))
+        if not subfields:
+            continue
+
+        # Check if $b already exists
+        if any(sf.get("code") == "b" for sf in subfields):
+            continue
+
+        # Find the first $a subfield
+        a_index = None
+        a_subfield = None
+        for i, sf in enumerate(subfields):
+            if sf.get("code") == "a":
+                a_index = i
+                a_subfield = sf
+                break
+
+        if a_subfield is None:
+            continue  # no $a, cannot determine code
+
+        term = (a_subfield.text or "").strip()
+        if not term:
+            continue
+
+        # Look up code
+        entry = _get_rda_entry(tag, term, lang)
+        if not entry:
+            other_lang = "dut" if lang == "eng" else "eng"
+            entry = _get_rda_entry(tag, term, other_lang)
+        if not entry:
+            continue
+
+        code = entry.get("code")
+        if not code:
+            continue
+
+        # Create $b subfield
+        b_subfield = etree.SubElement(datafield, _tag("subfield"))
+        b_subfield.set("code", "b")
+        b_subfield.text = code
+
+        # Move it to after $a
+        if a_index is not None:
+           datafield.insert(a_index + 1, b_subfield)
+
+        modified = True
+
+    if not modified:
+        return marcxml
+
+    return etree.tostring(tree, encoding="utf-8", pretty_print=True).decode("utf-8")
+
 
 def sanitize_marcxml(marcxml: str) -> str:
     """
@@ -27,6 +167,19 @@ def sanitize_marcxml(marcxml: str) -> str:
     if not marcxml:
         return marcxml
     return marcxml.replace("\u00a0", " ")
+
+
+def prepare_marcxml_for_submission(marcxml: str) -> str:
+    """
+    Full preparation pipeline for MARCXML before sending to OCLC:
+      1. Replace non-breaking spaces.
+      2. Add missing $b subfields for RDA fields 336,337,338.
+    """
+    if not marcxml:
+        return marcxml
+    xml = sanitize_marcxml(marcxml)
+    xml = _add_missing_rda_subfield_b(xml)
+    return xml
 
 
 def get_user_agent():
@@ -97,14 +250,14 @@ def put_bib_record(ocn: str, marcxml: str, token: str) -> tuple[str, int, str]:
     Endpoint: PUT /worldcat/manage/bibs/{oclcNumber}
 
     If the record does not exist a new record will be created.
-    Automatically sanitizes whitespace before sending.
+    Automatically prepares the MARCXML before sending.
     Returns (marcxml_string, http_status_code, raw_response_text).
     """
-    sanitized_xml = sanitize_marcxml(marcxml)
+    prepared_xml = prepare_marcxml_for_submission(marcxml)
     url = f"{OCLC_API_BASE}/{ocn}"
     response = requests.put(
         url,
-        data=sanitized_xml.encode("utf-8"),
+        data=prepared_xml.encode("utf-8"),
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/marcxml+xml",
@@ -122,10 +275,10 @@ def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
 
     Endpoint: POST /worldcat/manage/bibs
 
-    Automatically sanitizes whitespace before sending.
+    Automatically prepares the MARCXML before sending.
     Returns (marcxml_string, http_status_code, raw_response_text).
     """
-    sanitized_xml = sanitize_marcxml(marcxml)
+    prepared_xml = prepare_marcxml_for_submission(marcxml)
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/marcxml+xml",
@@ -136,7 +289,7 @@ def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
     try:
         response = requests.post(
             OCLC_API_BASE,
-            data=sanitized_xml.encode("utf-8"),
+            data=prepared_xml.encode("utf-8"),
             headers=headers,
             timeout=30,
         )

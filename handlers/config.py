@@ -10,6 +10,7 @@ CREDENTIALS_FILE = DATA_DIR / "credentials.txt"
 INSTITUTION_CONFIG_FILE = DATA_DIR / "institution_config.txt"
 CUSTOM_PROMPTS_FILE = DATA_DIR / "custom_prompts.txt"
 PROFILES_008_FILE = DATA_DIR / "008_profiles.json"
+PROFILES_LDR_FILE = DATA_DIR / "ldr_profiles.json"
 
 # This key must remain the same to decrypt existing credentials
 SECRET_KEY = b'pL9xW8_vG3R2k0_N7mB4v_C6xZ1lK9jH8gF7dS5aQ4w='
@@ -174,4 +175,44 @@ def delete_008_profile(name: str) -> list:
     """Delete a profile by name. Returns the updated list."""
     profiles = [p for p in load_008_profiles() if p["name"].lower() != name.lower()]
     _save_008_profiles(profiles)
+    return profiles
+
+
+# ── LDR Profiles (new) ──────────────────────────────────────────────────────
+
+def load_ldr_profiles() -> list:
+    """Load all LDR profiles from JSON file. Returns list of {name, settings}."""
+    if not PROFILES_LDR_FILE.exists():
+        return []
+    try:
+        data = json.loads(PROFILES_LDR_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def _save_ldr_profiles(profiles: list) -> None:
+    """Persist LDR profiles to disk."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    PROFILES_LDR_FILE.write_text(json.dumps(profiles, ensure_ascii=False, indent=2),
+                                 encoding="utf-8")
+
+
+def add_ldr_profile(name: str, settings: dict) -> list:
+    """
+    Add or overwrite a named LDR profile.
+    Expected settings keys: ldr_06, ldr_07, ldr_08, ldr_17, ldr_18.
+    Returns the updated list.
+    """
+    profiles = load_ldr_profiles()
+    profiles = [p for p in profiles if p["name"].lower() != name.lower()]
+    profiles.append({"name": name, "settings": settings})
+    _save_ldr_profiles(profiles)
+    return profiles
+
+
+def delete_ldr_profile(name: str) -> list:
+    """Delete an LDR profile by name. Returns the updated list."""
+    profiles = [p for p in load_ldr_profiles() if p["name"].lower() != name.lower()]
+    _save_ldr_profiles(profiles)
     return profiles

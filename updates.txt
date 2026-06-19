@@ -5,3 +5,4 @@
 2026-05-12 : Added 008 profiles and removed the Institution name from config (it was just for view.)
 2026-05-18 : New Version 2.0 - Added a new section to improve existing records via GET and PUT actions on the OCLC API. 
 2026-05-19 : Updated some bugs on prompt.
+2026-06-19 : <b>Version 2.0</b> - (If you see this message, it is still WIP and I haven't publish it) Added custom LDR profiles for validation purposes as some AI's do more mistakes than others. I also added a Validator and a Marc21 previewer (I am trying to make this one point errors more clear). The validation messages are customized as they come, when I find an error I will try my best to explain how to fix it throught the validator. Feel free to share errors to validate. 

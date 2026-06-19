@@ -1089,7 +1089,8 @@ hr.divider {
 }
 
 /* ── 008 Builder ──────────────────────────────────────────────── */
-.builder-008 {
+.builder-008,
+.builder-ldr {
   margin-bottom: 1.5rem;
   border: 1px solid var(--border, #dde3ec);
   border-radius: 8px;
@@ -1625,33 +1626,82 @@ hr.divider {
 }
 
 .changelog-entry {
-    display: flex;
-    gap: 1rem;
-    padding: 0.85rem 0;
-    border-bottom: 1px solid var(--border-light);
-    align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border-light);
+  align-items: flex-start;
 }
+
 .changelog-entry:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
 }
+
 .changelog-date {
-    flex-shrink: 0;
-    min-width: 130px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    font-family: var(--font-mono);
-    color: var(--teal-dk);
-    background: var(--teal-lt);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 0.2rem 0.65rem;
-    margin-top: 0.15rem;
-    white-space: nowrap;
-    text-align: center;
+  flex-shrink: 0;
+  min-width: 130px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--teal-dk);
+  background: var(--teal-lt);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.2rem 0.65rem;
+  margin-top: 0.15rem;
+  white-space: nowrap;
+  text-align: center;
 }
+
 .changelog-text {
-    font-size: 0.88rem;
-    color: var(--text);
-    line-height: 1.6;
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.collapsible-body.open {
+  display: block;
+}
+
+/* ── Accordion cards ──────────────────────────────────────────────── */
+.accordion-body {
+  transition: max-height 0.25s ease-out, opacity 0.2s ease, padding 0.2s ease;
+  overflow: hidden;
+  max-height: 2000px;  /* large enough for content */
+  opacity: 1;
+  padding: 1.5rem;
+}
+
+.accordion-body.accordion-collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 1.5rem;
+  overflow: hidden;
+}
+
+.accordion-chevron {
+  margin-left: auto;
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+  color: var(--muted);
+}
+
+.accordion-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.accordion-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.accordion-toggle:hover {
+  background: var(--teal-mid);
+}
+
+/* Ensure that when collapsed, the header border stays */
+.card-collapsed .card-header {
+  border-bottom: 1px solid var(--border-light);
 }

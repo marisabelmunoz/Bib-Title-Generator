@@ -9,10 +9,13 @@ Two entry points:
 When field_008_prebuilt is supplied (from the 008 Builder form) build_prompt
 instructs the AI to copy it verbatim.  The legacy auto-construction path is
 retained as a fallback when no pre-built value is provided.
+
+Similarly, leader_prebuilt can be supplied to set the Leader string.
 """
 
 from datetime import datetime
 from .config import load_institution_config
+from .field_LDR import build_LDR   
 
 # ---------------------------------------------------------------------------
 # Lookup tables
@@ -60,6 +63,7 @@ You MUST use it exactly as provided — character by character. Do NOT alter any
 
 ```
 {field_008_prebuilt}
+
 ```
 
 **DO NOT change any character in this 008 field.**
@@ -154,7 +158,8 @@ Codes:
 # ---------------------------------------------------------------------------
 
 def build_prompt(biography, index_val, year, place, description, isbn, format_book,
-                 cat_lang, extra_instructions, field_008_prebuilt=None):
+                 cat_lang, extra_instructions, field_008_prebuilt=None,
+                 leader_prebuilt=None):   # <-- new parameter
     """
     Build the full AI cataloging prompt for creating a new MARC21 record.
 
@@ -164,9 +169,19 @@ def build_prompt(biography, index_val, year, place, description, isbn, format_bo
         When provided (from the 008 Builder form) the prompt instructs the AI to
         copy this value verbatim.  When None the legacy auto-determination path
         is used instead.
+    leader_prebuilt : str | None
+        When provided (from the LDR Builder form) the prompt uses this exact
+        24‑character Leader string. Otherwise a default is built via build_LDR().
     """
     inst_config      = load_institution_config()
     institution_code = inst_config["institution_code"]
+
+    # ── Leader ────────────────────────────────────────────────────────────────
+    if leader_prebuilt and len(leader_prebuilt) == 24:
+        leader = leader_prebuilt
+    else:
+        # Build a sensible default: Type='a', BLvl='m', Ctrl=' ', ELvl='7', Desc='i'
+        leader = build_LDR(LDR_06='a', LDR_07='m', LDR_08=' ', LDR_17='7', LDR_18='i')
 
     # ── Fallback values (used in legacy path and for example block) ──────────
     year_clean  = year.strip() if (year.strip().isdigit() and len(year.strip()) == 4) \
@@ -207,9 +222,10 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 040: `<subfield code="a">{institution_code}</subfield><subfield code="b">{cat_lang}</subfield><subfield code="e">rda</subfield><subfield code="c">{institution_code}</subfield>`
 - 049: `<subfield code="a">{institution_code}</subfield>`
 
-**Leader:**
-- Use `00000nam a22000007ci 4500` (positions 06=a, 07=m)
-- 17=c if ISBD punctuation is NOT present in the title you generate, otherwise 17=i if you omit ISBD punctuation
+**Leader (LDR):**
+- Use the following exact 24‑character Leader:
+  `{leader}`
+- This Leader has been constructed by the cataloger. DO NOT change any character.
 
 **ISBN & Format (Field 020):**
 - ISBN: {isbn if isbn else "Not provided (extract from description if found)"}
@@ -257,8 +273,8 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 
 **Example format (MARCXML):**
 
-<record>
-    <leader>00000nam a22000007i 4500</leader>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+    <leader>{leader}</leader>
     <controlfield tag="008">{field_008_for_example}</controlfield>
     <datafield tag="020" ind1=" " ind2=" ">
         <subfield code="a">{isbn if isbn else "978..."}</subfield>
@@ -309,19 +325,8 @@ def build_update_prompt(
       2. Apply the cataloger's improvement instructions.
       3. Return the complete, corrected record — never a partial diff.
 
-
-    Parameters
-    ----------
-    existing_marcxml : str
-        The raw MARCXML currently stored in WorldCat.
-    extra_instructions : str
-        Free-text instructions from the cataloger describing what to improve,
-        add, correct, or remove.
-    cat_lang : str
-        Cataloging language code ('eng' or 'dut').
-    additional_metadata : str
-        Any supplementary metadata the cataloger wants the AI to use
-        (e.g., publisher blurb, table of contents, back-cover text).
+    If leader_prebuilt is provided, the prompt asks the AI to replace the Leader
+    with the given 24‑character string.
     """
     inst_config      = load_institution_config()
     institution_code = inst_config["institution_code"]
@@ -338,6 +343,7 @@ def build_update_prompt(
         if extra_instructions.strip()
         else "No specific instructions provided — review the record for completeness and correct any obvious errors."
     )
+
 
     prompt = f"""You are a professional cataloger following RDA guidelines and MARC21 formatting.
 
@@ -357,7 +363,6 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
 - IMPORTANT SO AS NOT TO BREAK THE RECORD: **Leave field 040 exactly as found** — do not add, delete, or change any subfield or institution code under any circumstance. The only allowed action is to add $e rda if it is missing; otherwise, copy the field verbatim.
 - Return the **complete** improved record — not a diff, not a summary, not a partial extract.
 - When suggesting subject headings, stick to a maximum of 5 and always add them under `ind2=4` without $2 unless explicitly instructed.
-
 
 ---
 
@@ -403,6 +408,7 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
 
 **Specific User Instructions:**
 {extra_instructions if extra_instructions else "None provided."}
+
 
 
 

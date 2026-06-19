@@ -1,0 +1,1124 @@
+{
+  "336": {
+    "eng": [
+      {
+        "term": "cartographic dataset",
+        "code": "crd",
+        "source": "rdacontent",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartographic image",
+        "code": "cri",
+        "source": "rdacontent",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartographic moving image",
+        "code": "crm",
+        "source": "rdacontent",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartographic tactile image",
+        "code": "crt",
+        "source": "rdacontent",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartographic tactile three-dimensional form",
+        "code": "crn",
+        "source": "rdacontent",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartographic three-dimensional form",
+        "code": "crf",
+        "source": "rdacontent",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "computer dataset",
+        "code": "cod",
+        "source": "rdacontent",
+        "leader_code": "m"
+      },
+      {
+        "term": "computer program",
+        "code": "cop",
+        "source": "rdacontent",
+        "leader_code": "m"
+      },
+      {
+        "term": "notated movement",
+        "code": "ntv",
+        "source": "rdacontent",
+        "leader_code": "a or t"
+      },
+      {
+        "term": "notated music",
+        "code": "ntm",
+        "source": "rdacontent",
+        "leader_code": "c or d"
+      },
+      {
+        "term": "performed music",
+        "code": "prm",
+        "source": "rdacontent",
+        "leader_code": "j"
+      },
+      {
+        "term": "sounds",
+        "code": "snd",
+        "source": "rdacontent",
+        "leader_code": "i"
+      },
+      {
+        "term": "spoken word",
+        "code": "spw",
+        "source": "rdacontent",
+        "leader_code": "i"
+      },
+      {
+        "term": "still image",
+        "code": "sti",
+        "source": "rdacontent",
+        "leader_code": "k"
+      },
+      {
+        "term": "tactile image",
+        "code": "tci",
+        "source": "rdacontent",
+        "leader_code": "k"
+      },
+      {
+        "term": "tactile notated music",
+        "code": "tcm",
+        "source": "rdacontent",
+        "leader_code": "c or d"
+      },
+      {
+        "term": "tactile notated movement",
+        "code": "tcn",
+        "source": "rdacontent",
+        "leader_code": "a or t"
+      },
+      {
+        "term": "tactile text",
+        "code": "tct",
+        "source": "rdacontent",
+        "leader_code": "a or t"
+      },
+      {
+        "term": "tactile three-dimensional form",
+        "code": "tcf",
+        "source": "rdacontent",
+        "leader_code": "r"
+      },
+      {
+        "term": "text",
+        "code": "txt",
+        "source": "rdacontent",
+        "leader_code": "a or t"
+      },
+      {
+        "term": "three-dimensional form",
+        "code": "tdf",
+        "source": "rdacontent",
+        "leader_code": "r"
+      },
+      {
+        "term": "three-dimensional moving image",
+        "code": "tdm",
+        "source": "rdacontent",
+        "leader_code": "g"
+      },
+      {
+        "term": "two-dimensional moving image",
+        "code": "tdi",
+        "source": "rdacontent",
+        "leader_code": "g"
+      },
+      {
+        "term": "other",
+        "code": "xxx",
+        "source": "rdacontent",
+        "leader_code": "o or p"
+      },
+      {
+        "term": "unspecified",
+        "code": "zzz",
+        "source": "rdacontent",
+        "leader_code": ""
+      }
+    ],
+    "dut": [
+      {
+        "term": "cartografische dataset",
+        "code": "crd",
+        "source": "rdacontent/dut",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartografische afbeelding",
+        "code": "cri",
+        "source": "rdacontent/dut",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartografisch bewegend beeld",
+        "code": "crm",
+        "source": "rdacontent/dut",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartografische tactiele afbeelding",
+        "code": "crt",
+        "source": "rdacontent/dut",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartografische tactiele driedimensionale vorm",
+        "code": "crn",
+        "source": "rdacontent/dut",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "cartografische driedimensionale vorm",
+        "code": "crf",
+        "source": "rdacontent/dut",
+        "leader_code": "e or f"
+      },
+      {
+        "term": "computerdataset",
+        "code": "cod",
+        "source": "rdacontent/dut",
+        "leader_code": "m"
+      },
+      {
+        "term": "computerprogramma",
+        "code": "cop",
+        "source": "rdacontent/dut",
+        "leader_code": "m"
+      },
+      {
+        "term": "bewegingsnotatie",
+        "code": "ntv",
+        "source": "rdacontent/dut",
+        "leader_code": "a or t"
+      },
+      {
+        "term": "muzieknotatie",
+        "code": "ntm",
+        "source": "rdacontent/dut",
+        "leader_code": "c or d"
+      },
+      {
+        "term": "uitgevoerde muziek",
+        "code": "prm",
+        "source": "rdacontent/dut",
+        "leader_code": "j"
+      },
+      {
+        "term": "geluiden",
+        "code": "snd",
+        "source": "rdacontent/dut",
+        "leader_code": "i"
+      },
+      {
+        "term": "gesproken woord",
+        "code": "spw",
+        "source": "rdacontent/dut",
+        "leader_code": "i"
+      },
+      {
+        "term": "niet-bewegend beeld",
+        "code": "sti",
+        "source": "rdacontent/dut",
+        "leader_code": "k"
+      },
+      {
+        "term": "tactiele afbeelding",
+        "code": "tci",
+        "source": "rdacontent/dut",
+        "leader_code": "k"
+      },
+      {
+        "term": "tactiele muzieknotatie",
+        "code": "tcm",
+        "source": "rdacontent/dut",
+        "leader_code": "c or d"
+      },
+      {
+        "term": "tactiele bewegingsnotatie",
+        "code": "tcn",
+        "source": "rdacontent/dut",
+        "leader_code": "a or t"
+      },
+      {
+        "term": "tactiele tekst",
+        "code": "tct",
+        "source": "rdacontent/dut",
+        "leader_code": "a or t"
+      },
+      {
+        "term": "tactiele driedimensionale vorm",
+        "code": "tcf",
+        "source": "rdacontent/dut",
+        "leader_code": "r"
+      },
+      {
+        "term": "tekst",
+        "code": "txt",
+        "source": "rdacontent/dut",
+        "leader_code": "a or t"
+      },
+      {
+        "term": "driedimensionale vorm",
+        "code": "tdf",
+        "source": "rdacontent/dut",
+        "leader_code": "r"
+      },
+      {
+        "term": "driedimensionaal bewegend beeld",
+        "code": "tdm",
+        "source": "rdacontent/dut",
+        "leader_code": "g"
+      },
+      {
+        "term": "tweedimensionaal bewegend beeld",
+        "code": "tdi",
+        "source": "rdacontent/dut",
+        "leader_code": "g"
+      },
+      {
+        "term": "overig",
+        "code": "xxx",
+        "source": "rdacontent/dut",
+        "leader_code": "o or p"
+      },
+      {
+        "term": "ongespecificeerd",
+        "code": "zzz",
+        "source": "rdacontent/dut",
+        "leader_code": ""
+      }
+    ]
+  },
+  "337": {
+    "eng": [
+      {
+        "term": "audio",
+        "code": "s",
+        "source": "rdamedia",
+        "leader_code": "s"
+      },
+      {
+        "term": "computer",
+        "code": "c",
+        "source": "rdamedia",
+        "leader_code": "c"
+      },
+      {
+        "term": "microform",
+        "code": "h",
+        "source": "rdamedia",
+        "leader_code": "h"
+      },
+      {
+        "term": "microscopic",
+        "code": "p",
+        "source": "rdamedia",
+        "leader_code": ""
+      },
+      {
+        "term": "projected",
+        "code": "g",
+        "source": "rdamedia",
+        "leader_code": "g or m"
+      },
+      {
+        "term": "stereographic",
+        "code": "e",
+        "source": "rdamedia",
+        "leader_code": ""
+      },
+      {
+        "term": "unmediated",
+        "code": "n",
+        "source": "rdamedia",
+        "leader_code": "t or k"
+      },
+      {
+        "term": "video",
+        "code": "v",
+        "source": "rdamedia",
+        "leader_code": "v"
+      },
+      {
+        "term": "other",
+        "code": "x",
+        "source": "rdamedia",
+        "leader_code": "z"
+      },
+      {
+        "term": "unspecified",
+        "code": "z",
+        "source": "rdamedia",
+        "leader_code": "z"
+      }
+    ],
+    "dut": [
+      {
+        "term": "audio",
+        "code": "s",
+        "source": "rdamedium/dut",
+        "leader_code": "s"
+      },
+      {
+        "term": "computer",
+        "code": "c",
+        "source": "rdamedium/dut",
+        "leader_code": "c"
+      },
+      {
+        "term": "microvorm",
+        "code": "h",
+        "source": "rdamedium/dut",
+        "leader_code": "h"
+      },
+      {
+        "term": "microscopisch",
+        "code": "p",
+        "source": "rdamedium/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "geprojecteerd",
+        "code": "g",
+        "source": "rdamedium/dut",
+        "leader_code": "g or m"
+      },
+      {
+        "term": "stereografisch",
+        "code": "e",
+        "source": "rdamedium/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "zonder medium",
+        "code": "n",
+        "source": "rdamedium/dut",
+        "leader_code": "t or k"
+      },
+      {
+        "term": "video",
+        "code": "v",
+        "source": "rdamedium/dut",
+        "leader_code": "v"
+      },
+      {
+        "term": "overig",
+        "code": "x",
+        "source": "rdamedium/dut",
+        "leader_code": "z"
+      },
+      {
+        "term": "ongespecificeerd",
+        "code": "z",
+        "source": "rdamedium/dut",
+        "leader_code": "z"
+      }
+    ]
+  },
+  "338": {
+    "eng": [
+      {
+        "term": "audio cartridge",
+        "code": "sg",
+        "source": "rdacarrier",
+        "leader_code": "g"
+      },
+      {
+        "term": "audio belt",
+        "code": "sb",
+        "source": "rdacarrier",
+        "leader_code": "b"
+      },
+      {
+        "term": "audio cylinder",
+        "code": "se",
+        "source": "rdacarrier",
+        "leader_code": "e"
+      },
+      {
+        "term": "audio disc",
+        "code": "sd",
+        "source": "rdacarrier",
+        "leader_code": "d"
+      },
+      {
+        "term": "sound track reel",
+        "code": "si",
+        "source": "rdacarrier",
+        "leader_code": "i"
+      },
+      {
+        "term": "audio roll",
+        "code": "sq",
+        "source": "rdacarrier",
+        "leader_code": "q"
+      },
+      {
+        "term": "audio wire reel",
+        "code": "sw",
+        "source": "rdacarrier",
+        "leader_code": "w"
+      },
+      {
+        "term": "audiocassette",
+        "code": "ss",
+        "source": "rdacarrier",
+        "leader_code": "s"
+      },
+      {
+        "term": "audiotape reel",
+        "code": "st",
+        "source": "rdacarrier",
+        "leader_code": "t"
+      },
+      {
+        "term": "other (audio)",
+        "code": "sz",
+        "source": "rdacarrier",
+        "leader_code": "z"
+      },
+      {
+        "term": "computer card",
+        "code": "ck",
+        "source": "rdacarrier",
+        "leader_code": "k"
+      },
+      {
+        "term": "computer chip cartridge",
+        "code": "cb",
+        "source": "rdacarrier",
+        "leader_code": "b"
+      },
+      {
+        "term": "computer disc",
+        "code": "cd",
+        "source": "rdacarrier",
+        "leader_code": "d"
+      },
+      {
+        "term": "computer disc cartridge",
+        "code": "ce",
+        "source": "rdacarrier",
+        "leader_code": "e"
+      },
+      {
+        "term": "computer tape cartridge",
+        "code": "ca",
+        "source": "rdacarrier",
+        "leader_code": "a"
+      },
+      {
+        "term": "computer tape cassette",
+        "code": "cf",
+        "source": "rdacarrier",
+        "leader_code": "f"
+      },
+      {
+        "term": "computer tape reel",
+        "code": "ch",
+        "source": "rdacarrier",
+        "leader_code": "h"
+      },
+      {
+        "term": "online resource",
+        "code": "cr",
+        "source": "rdacarrier",
+        "leader_code": "r"
+      },
+      {
+        "term": "other (computer)",
+        "code": "cz",
+        "source": "rdacarrier",
+        "leader_code": "z"
+      },
+      {
+        "term": "aperture card",
+        "code": "ha",
+        "source": "rdacarrier",
+        "leader_code": "a"
+      },
+      {
+        "term": "microfiche",
+        "code": "he",
+        "source": "rdacarrier",
+        "leader_code": "e"
+      },
+      {
+        "term": "microfiche cassette",
+        "code": "hf",
+        "source": "rdacarrier",
+        "leader_code": "f"
+      },
+      {
+        "term": "microfilm cartridge",
+        "code": "hb",
+        "source": "rdacarrier",
+        "leader_code": "b"
+      },
+      {
+        "term": "microfilm cassette",
+        "code": "hc",
+        "source": "rdacarrier",
+        "leader_code": "c"
+      },
+      {
+        "term": "microfilm reel",
+        "code": "hd",
+        "source": "rdacarrier",
+        "leader_code": "d"
+      },
+      {
+        "term": "microfilm roll",
+        "code": "hj",
+        "source": "rdacarrier",
+        "leader_code": "j"
+      },
+      {
+        "term": "microfilm slip",
+        "code": "hh",
+        "source": "rdacarrier",
+        "leader_code": "h"
+      },
+      {
+        "term": "microopaque",
+        "code": "hg",
+        "source": "rdacarrier",
+        "leader_code": "g"
+      },
+      {
+        "term": "other (microform)",
+        "code": "hz",
+        "source": "rdacarrier",
+        "leader_code": "z"
+      },
+      {
+        "term": "microscope slide",
+        "code": "pp",
+        "source": "rdacarrier",
+        "leader_code": "p"
+      },
+      {
+        "term": "other (microscopic)",
+        "code": "pz",
+        "source": "rdacarrier",
+        "leader_code": ""
+      },
+      {
+        "term": "film cartridge",
+        "code": "mc",
+        "source": "rdacarrier",
+        "leader_code": "c"
+      },
+      {
+        "term": "film cassette",
+        "code": "mf",
+        "source": "rdacarrier",
+        "leader_code": "f"
+      },
+      {
+        "term": "film reel",
+        "code": "mr",
+        "source": "rdacarrier",
+        "leader_code": "r"
+      },
+      {
+        "term": "film roll",
+        "code": "mo",
+        "source": "rdacarrier",
+        "leader_code": "o"
+      },
+      {
+        "term": "filmslip",
+        "code": "gd",
+        "source": "rdacarrier",
+        "leader_code": "d"
+      },
+      {
+        "term": "filmstrip",
+        "code": "gf",
+        "source": "rdacarrier",
+        "leader_code": "f"
+      },
+      {
+        "term": "filmstrip cartridge",
+        "code": "gc",
+        "source": "rdacarrier",
+        "leader_code": "c"
+      },
+      {
+        "term": "overhead transparency",
+        "code": "gt",
+        "source": "rdacarrier",
+        "leader_code": "t"
+      },
+      {
+        "term": "slide",
+        "code": "gs",
+        "source": "rdacarrier",
+        "leader_code": "s"
+      },
+      {
+        "term": "other (projected)",
+        "code": "mz",
+        "source": "rdacarrier",
+        "leader_code": "z"
+      },
+      {
+        "term": "stereograph card",
+        "code": "eh",
+        "source": "rdacarrier",
+        "leader_code": "h"
+      },
+      {
+        "term": "stereograph disc",
+        "code": "es",
+        "source": "rdacarrier",
+        "leader_code": "s"
+      },
+      {
+        "term": "other (stereographic)",
+        "code": "ez",
+        "source": "rdacarrier",
+        "leader_code": ""
+      },
+      {
+        "term": "card",
+        "code": "no",
+        "source": "rdacarrier",
+        "leader_code": ""
+      },
+      {
+        "term": "flipchart",
+        "code": "nn",
+        "source": "rdacarrier",
+        "leader_code": ""
+      },
+      {
+        "term": "roll",
+        "code": "na",
+        "source": "rdacarrier",
+        "leader_code": ""
+      },
+      {
+        "term": "sheet",
+        "code": "nb",
+        "source": "rdacarrier",
+        "leader_code": ""
+      },
+      {
+        "term": "volume",
+        "code": "nc",
+        "source": "rdacarrier",
+        "leader_code": ""
+      },
+      {
+        "term": "object",
+        "code": "nr",
+        "source": "rdacarrier",
+        "leader_code": "r"
+      },
+      {
+        "term": "other (unmediated)",
+        "code": "nz",
+        "source": "rdacarrier",
+        "leader_code": ""
+      },
+      {
+        "term": "video cartridge",
+        "code": "vc",
+        "source": "rdacarrier",
+        "leader_code": "c"
+      },
+      {
+        "term": "videocassette",
+        "code": "vf",
+        "source": "rdacarrier",
+        "leader_code": "f"
+      },
+      {
+        "term": "videodisc",
+        "code": "vd",
+        "source": "rdacarrier",
+        "leader_code": "d"
+      },
+      {
+        "term": "videotape reel",
+        "code": "vr",
+        "source": "rdacarrier",
+        "leader_code": "r"
+      },
+      {
+        "term": "other (video)",
+        "code": "vz",
+        "source": "rdacarrier",
+        "leader_code": "z"
+      },
+      {
+        "term": "unspecified",
+        "code": "zu",
+        "source": "rdacarrier",
+        "leader_code": "u"
+      }
+    ],
+  "dut": [
+      {
+        "term": "audiocartridge",
+        "code": "sg",
+        "source": "rdacarrier/dut",
+        "leader_code": "g"
+      },
+      {
+        "term": "audioband",
+        "code": "sb",
+        "source": "rdacarrier/dut",
+        "leader_code": "b"
+      },
+      {
+        "term": "audiocilinder",
+        "code": "se",
+        "source": "rdacarrier/dut",
+        "leader_code": "e"
+      },
+      {
+        "term": "audiodisc",
+        "code": "sd",
+        "source": "rdacarrier/dut",
+        "leader_code": "d"
+      },
+      {
+        "term": "soundtrackspoel",
+        "code": "si",
+        "source": "rdacarrier/dut",
+        "leader_code": "i"
+      },
+      {
+        "term": "audiorol",
+        "code": "sq",
+        "source": "rdacarrier/dut",
+        "leader_code": "q"
+      },
+      {
+        "term": "audiodraadspoel",
+        "code": "sw",
+        "source": "rdacarrier/dut",
+        "leader_code": "w"
+      },
+      {
+        "term": "audiocassette",
+        "code": "ss",
+        "source": "rdacarrier/dut",
+        "leader_code": "s"
+      },
+      {
+        "term": "audiotapespoel",
+        "code": "st",
+        "source": "rdacarrier/dut",
+        "leader_code": "t"
+      },
+      {
+        "term": "overige geluidsdrager",
+        "code": "sz",
+        "source": "rdacarrier/dut",
+        "leader_code": "z"
+      },
+      {
+        "term": "computerkaart",
+        "code": "ck",
+        "source": "rdacarrier/dut",
+        "leader_code": "k"
+      },
+      {
+        "term": "computerchipcartridge",
+        "code": "cb",
+        "source": "rdacarrier/dut",
+        "leader_code": "b"
+      },
+      {
+        "term": "computerdisc",
+        "code": "cd",
+        "source": "rdacarrier/dut",
+        "leader_code": "d"
+      },
+      {
+        "term": "computerdisccartridge",
+        "code": "ce",
+        "source": "rdacarrier/dut",
+        "leader_code": "e"
+      },
+      {
+        "term": "computertapecartridge",
+        "code": "ca",
+        "source": "rdacarrier/dut",
+        "leader_code": "a"
+      },
+      {
+        "term": "computertapecassette",
+        "code": "cf",
+        "source": "rdacarrier/dut",
+        "leader_code": "f"
+      },
+      {
+        "term": "computertapespoel",
+        "code": "ch",
+        "source": "rdacarrier/dut",
+        "leader_code": "h"
+      },
+      {
+        "term": "online bron",
+        "code": "cr",
+        "source": "rdacarrier/dut",
+        "leader_code": "r"
+      },
+      {
+        "term": "overige computerdrager",
+        "code": "cz",
+        "source": "rdacarrier/dut",
+        "leader_code": "z"
+      },
+      {
+        "term": "apertuurkaart",
+        "code": "ha",
+        "source": "rdacarrier/dut",
+        "leader_code": "a"
+      },
+      {
+        "term": "microfiche",
+        "code": "he",
+        "source": "rdacarrier/dut",
+        "leader_code": "e"
+      },
+      {
+        "term": "microfichecassette",
+        "code": "hf",
+        "source": "rdacarrier/dut",
+        "leader_code": "f"
+      },
+      {
+        "term": "microfilmcartridge",
+        "code": "hb",
+        "source": "rdacarrier/dut",
+        "leader_code": "b"
+      },
+      {
+        "term": "microfilmcassette",
+        "code": "hc",
+        "source": "rdacarrier/dut",
+        "leader_code": "c"
+      },
+      {
+        "term": "microfilmspoel",
+        "code": "hd",
+        "source": "rdacarrier/dut",
+        "leader_code": "d"
+      },
+      {
+        "term": "microfilmrol",
+        "code": "hj",
+        "source": "rdacarrier/dut",
+        "leader_code": "j"
+      },
+      {
+        "term": "microfilmstrook",
+        "code": "hh",
+        "source": "rdacarrier/dut",
+        "leader_code": "h"
+      },
+      {
+        "term": "micro-opaak",
+        "code": "hg",
+        "source": "rdacarrier/dut",
+        "leader_code": "g"
+      },
+      {
+        "term": "overige microvormdrager",
+        "code": "hz",
+        "source": "rdacarrier/dut",
+        "leader_code": "z"
+      },
+      {
+        "term": "microscoopdia",
+        "code": "pp",
+        "source": "rdacarrier/dut",
+        "leader_code": "p"
+      },
+      {
+        "term": "overige microscoopdrager",
+        "code": "pz",
+        "source": "rdacarrier/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "filmcartridge",
+        "code": "mc",
+        "source": "rdacarrier/dut",
+        "leader_code": "c"
+      },
+      {
+        "term": "filmcassette",
+        "code": "mf",
+        "source": "rdacarrier/dut",
+        "leader_code": "f"
+      },
+      {
+        "term": "filmspoel",
+        "code": "mr",
+        "source": "rdacarrier/dut",
+        "leader_code": "r"
+      },
+      {
+        "term": "filmrol",
+        "code": "mo",
+        "source": "rdacarrier/dut",
+        "leader_code": "o"
+      },
+      {
+        "term": "filmstrook",
+        "code": "gd",
+        "source": "rdacarrier/dut",
+        "leader_code": "d"
+      },
+      {
+        "term": "filmstrip",
+        "code": "gf",
+        "source": "rdacarrier/dut",
+        "leader_code": "f"
+      },
+      {
+        "term": "filmstripcartridge",
+        "code": "gc",
+        "source": "rdacarrier/dut",
+        "leader_code": "c"
+      },
+      {
+        "term": "overheadsheet",
+        "code": "gt",
+        "source": "rdacarrier/dut",
+        "leader_code": "t"
+      },
+      {
+        "term": "dia",
+        "code": "gs",
+        "source": "rdacarrier/dut",
+        "leader_code": "s"
+      },
+      {
+        "term": "overige drager van geprojecteerd beeld",
+        "code": "mz",
+        "source": "rdacarrier/dut",
+        "leader_code": "z"
+      },
+      {
+        "term": "stereografische kaart",
+        "code": "eh",
+        "source": "rdacarrier/dut",
+        "leader_code": "h"
+      },
+      {
+        "term": "stereografische disc",
+        "code": "es",
+        "source": "rdacarrier/dut",
+        "leader_code": "s"
+      },
+      {
+        "term": "overige stereografische drager",
+        "code": "ez",
+        "source": "rdacarrier/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "kaart",
+        "code": "no",
+        "source": "rdacarrier/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "flip-overvel",
+        "code": "nn",
+        "source": "rdacarrier/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "rol",
+        "code": "na",
+        "source": "rdacarrier/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "vel",
+        "code": "nb",
+        "source": "rdacarrier/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "band",
+        "code": "nc",
+        "source": "rdacarrier/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "object",
+        "code": "nr",
+        "source": "rdacarrier/dut",
+        "leader_code": "r"
+      },
+      {
+        "term": "overige drager zonder medium",
+        "code": "nz",
+        "source": "rdacarrier/dut",
+        "leader_code": ""
+      },
+      {
+        "term": "videocartridge",
+        "code": "vc",
+        "source": "rdacarrier/dut",
+        "leader_code": "c"
+      },
+      {
+        "term": "videocassette",
+        "code": "vf",
+        "source": "rdacarrier/dut",
+        "leader_code": "f"
+      },
+      {
+        "term": "videodisc",
+        "code": "vd",
+        "source": "rdacarrier/dut",
+        "leader_code": "d"
+      },
+      {
+        "term": "videotapespoel",
+        "code": "vr",
+        "source": "rdacarrier/dut",
+        "leader_code": "r"
+      },
+      {
+        "term": "overige videodrager",
+        "code": "vz",
+        "source": "rdacarrier/dut",
+        "leader_code": "z"
+      },
+      {
+        "term": "ongespecificeerd",
+        "code": "zu",
+        "source": "rdacarrier/dut",
+        "leader_code": "u"
+      }
+    ]  
+  }
+}

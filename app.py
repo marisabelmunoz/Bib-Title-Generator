@@ -11,6 +11,7 @@ import time
 import webbrowser
 from datetime import datetime
 from pathlib import Path
+from lxml import etree
 
 import requests
 from flask import (
@@ -25,12 +26,15 @@ from flask import (
 from handlers.config import (
     add_custom_prompt,
     add_008_profile,
+    add_ldr_profile,          
     delete_008_profile,
+    delete_ldr_profile,       
     credentials_exist,
     delete_custom_prompt,
     load_credentials,
     load_custom_prompts,
     load_008_profiles,
+    load_ldr_profiles,        
     load_institution_config,
     save_credentials,
     save_institution_config,
@@ -38,8 +42,8 @@ from handlers.config import (
 from handlers.field_008 import build_008
 from handlers.oclc_api import create_bib_record, get_access_token, get_bib_record, put_bib_record
 from handlers.prompt import build_prompt, build_update_prompt
+from handlers.validate import validate_marc_xml, _strip_ns, _tag, MARC_NS 
 
-# updated 4/30/26
 
 app = Flask(__name__)
 
@@ -278,6 +282,7 @@ def generate_prompt():
     data = request.get_json()
 
     field_008_prebuilt = data.get("field_008", "").strip() or None
+    field_leader       = data.get("field_leader", "").strip() or None
 
     biography    = data.get("biography", " ")
     index_val    = data.get("index", "0")
@@ -301,6 +306,7 @@ def generate_prompt():
         cat_lang           = cat_lang,
         extra_instructions = extra_instructions,
         field_008_prebuilt = field_008_prebuilt,
+        leader_prebuilt       = field_leader,
     )
 
     return jsonify({"prompt": prompt_text})
@@ -349,6 +355,119 @@ def submit_marc():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/validate-marc", methods=["POST"])
+def validate_marc_route():
+    """Validate MARCXML using the MARC21 validator."""
+    data = request.get_json()
+    marcxml = data.get("marcxml", "").strip()
+    if not marcxml:
+        return jsonify({"error": "No MARCXML provided."}), 400
+    results = validate_marc_xml(marcxml)
+    return jsonify(results)
+
+
+
+
+def build_preview(marcxml):
+    """
+    Parse MARCXML and return a list of records with their fields.
+    Each field: {'tag': str, 'indicators': str, 'subfields': [{'code': str, 'value': str}]}
+    """
+    try:
+        parser = etree.XMLParser(recover=False, resolve_entities=False)
+        tree = etree.fromstring(marcxml.encode('utf-8'), parser=parser)
+    except etree.XMLSyntaxError as e:
+        return {'error': f'XML parsing error: {e}'}
+
+    root = tree
+    if _strip_ns(root.tag) == 'collection':
+        records = root.findall(_tag('record'))
+    else:
+        records = [root] if _strip_ns(root.tag) == 'record' else []
+
+    preview = []
+    for idx, rec in enumerate(records, 1):
+        fields = []
+        for child in rec:
+            local = _strip_ns(child.tag)
+            if local == 'controlfield':
+                fields.append({
+                    'tag': child.get('tag', ''),
+                    'indicators': '',  # control fields have no indicators
+                    'subfields': [{'code': '', 'value': child.text or ''}]
+                })
+            elif local == 'datafield':
+                subfields = []
+                for sf in child.findall(_tag('subfield')):
+                    subfields.append({
+                        'code': sf.get('code', ''),
+                        'value': sf.text or ''
+                    })
+                fields.append({
+                    'tag': child.get('tag', ''),
+                    'indicators': (child.get('ind1', '') or ' ') + (child.get('ind2', '') or ' '),
+                    'subfields': subfields
+                })
+        preview.append({'record': idx, 'fields': fields})
+    return preview
+
+
+@app.route('/preview-marc', methods=['POST'])
+def preview_marc():
+    data = request.get_json()
+    marcxml = data.get('marcxml', '')
+    if not marcxml:
+        return jsonify({'error': 'No MARCXML provided'}), 400
+
+    # 1. Build preview
+    preview_result = build_preview(marcxml)
+    if isinstance(preview_result, dict) and 'error' in preview_result:
+        return jsonify({'error': preview_result['error']}), 400
+
+    # 2. Run validation (from your validate.py)
+    validation_results = validate_marc_xml(marcxml)
+
+    # 3. Combine both
+    return jsonify({
+        'preview': preview_result,
+        'validation': {
+            'errors': validation_results['errors'],
+            'warnings': validation_results['warnings']
+        }
+    })
+
+
+# ── LDR Profile routes ────────────────────────────────────────────────────────
+
+@app.route("/config/ldr-profiles", methods=["GET"])
+def get_ldr_profiles():
+    """Return all saved LDR profiles as JSON."""
+    return jsonify(load_ldr_profiles())
+
+
+@app.route("/config/ldr-profiles", methods=["POST"])
+def save_ldr_profile():
+    """Add or overwrite a named LDR profile."""
+    data = request.get_json()
+    name = (data.get("name") or "").strip()
+    settings = data.get("settings")
+
+    if not name:
+        return jsonify({"error": "Profile name is required."}), 400
+    if not isinstance(settings, dict):
+        return jsonify({"error": "Profile settings must be an object."}), 400
+
+    updated = add_ldr_profile(name, settings)
+    return jsonify(updated)
+
+
+@app.route("/config/ldr-profiles/<path:name>", methods=["DELETE"])
+def remove_ldr_profile(name):
+    """Delete an LDR profile by name."""
+    updated = delete_ldr_profile(name)
+    return jsonify(updated)
 
 
 # ── Improve / Update record routes ────────────────────────────────────────────
