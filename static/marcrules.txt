@@ -3019,3 +3019,20 @@ ind1	blank	Undefined
 ind2	blank	Undefined
 a	NR	Content of non-MARC field
 2	NR	Source of data
+
+936	NR	CONSER/OCLC Miscellaneous Data (NR)
+ind1	blank	Undefined
+ind2	blank	Undefined
+a	NR	CONSER/OCLC miscellaneous data
+
+938	R	Vendor-Specific Ordering Data (R)
+ind1	blank	Undefined
+ind2	blank	Undefined
+a	NR	Full name of vendor 
+b	NR	OCLC-defined symbol for vendor
+c	NR	Terms of availability
+d	NR	Vendor net price
+i	NR	Inventory number
+n	NR	Vendor control number
+s	NR	Vendor status
+z	NR	Note

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='bibpromp.ico') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='bibpromp.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
@@ -248,6 +249,20 @@ function runUpdate() {
         btn.textContent = 'Retry';
     };
 }
+
+ // ── Added Accordion Collapse Toggle Logic ─────────────────────
+        document.querySelectorAll('.accordion-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function () {
+                const card = this.closest('.card');
+                const body = card.querySelector('.card-body');
+                const chevron = this.querySelector('.accordion-chevron');
+
+                if (body) body.classList.toggle('accordion-collapsed');
+                if (chevron) chevron.classList.toggle('rotated');
+                card.classList.toggle('card-collapsed');
+            });
+        });
+        
 </script>
 
 </body>

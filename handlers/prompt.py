@@ -261,7 +261,7 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - 336/337/338 (content, media, carrier type – RDA mandatory)
     When cataloging in Dutch (dut), always use the Dutch RDA terms for fields 336, 337, and 338, and append '/dut' to the source codes in subfield $2 (e.g., rdacontent/dut).
     - dutch: 336: rdacontent/dut · 337: rdamedium/dut · 338: rdacarrier/dut
-    - english: 336: rdacontent · 337: rdamedium · 338: rdacarrier
+    - english: 336: rdacontent · 337: rdamedia · 338: rdacarrier
 - 490 / 830 (series)
 - 500 (general notes as needed)
 - 504 (bibliography note) if the description mentions bibliography or sources, register, notes, etc.
@@ -393,7 +393,7 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
 - 264 _1  Publication statement — RDA form
 - 264 _4  Copyright date
 - 300  Physical description in {lang_name} (pages/pagina's, illustrations/illustraties, cm)
-- 336/337/338  RDA content/media/carrier — use {'rdacontent/dut · rdamedium/dut · rdacarrier/dut' if cat_lang == 'dut' else 'rdacontent · rdamedium · rdacarrier'}
+- 336/337/338  RDA content/media/carrier — use {'rdacontent/dut · rdamedium/dut · rdacarrier/dut' if cat_lang == 'dut' else 'rdacontent · rdamedia · rdacarrier'}
 - 490/830  Series
 - 500  General notes
 - 504  Bibliography note (if sources/register are mentioned)

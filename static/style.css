@@ -87,6 +87,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+p {
+  margin-bottom: 1rem;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+.fa-solid {
+  color: var(--teal-dk);
+}
+
 /* Ensure the hidden class actually hides the element */
 .hidden {
   display: none !important;

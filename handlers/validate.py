@@ -11,6 +11,16 @@ import json
 import unicodedata
 from pathlib import Path
 from lxml import etree
+import requests
+
+# Use relative import first (module lives alongside oclc_api.py / config.py),
+# fall back to absolute import for other execution environments.
+try:
+    from .oclc_api import get_access_token, get_user_agent
+    from .config import load_credentials
+except (ImportError, ValueError):
+    from oclc_api import get_access_token, get_user_agent
+    from config import load_credentials
 
 # Paths
 RULES_FILE = Path(__file__).parent.parent / "static" / "marcrules.txt"
@@ -18,6 +28,11 @@ RDA_FILE = Path(__file__).parent.parent / "static" / "rda_types.json"
 
 # Namespace
 MARC_NS = "http://www.loc.gov/MARC21/slim"
+
+# OCLC "Validate a Bibliographic Record" endpoint
+# POST /worldcat/manage/bibs/validate/{validationLevel}
+OCLC_VALIDATE_BASE = "https://metadata.api.oclc.org/worldcat/manage/bibs/validate"
+OCLC_VALIDATION_LEVELS = {"validateFull", "validateAdd", "validateReplace"}
 
 # Leader definitions
 LEADER_LENGTH = 24
@@ -201,6 +216,153 @@ def _get_rda_entry(tag, term, lang):
 
 
 # ----------------------------------------------------------------------
+# OCLC "Validate a Bibliographic Record" API
+# ----------------------------------------------------------------------
+def _resolve_credentials():
+    """
+    Normalise whatever load_credentials() returns into (client_id, client_secret).
+    Supports a dict with 'client_id'/'client_secret' keys, or a 2-item tuple/list.
+    """
+    creds = load_credentials()
+    if isinstance(creds, dict):
+        client_id = creds.get("client_id")
+        client_secret = creds.get("client_secret")
+        if client_id and client_secret:
+            return client_id, client_secret
+        raise ValueError("load_credentials() dict is missing 'client_id'/'client_secret'.")
+    if isinstance(creds, (list, tuple)) and len(creds) >= 2:
+        return creds[0], creds[1]
+    raise ValueError("Unrecognized credentials format returned by load_credentials().")
+
+
+def _extract_oclc_field_messages(node, found=None):
+    """
+    OCLC's validate response can include a nested array of field-level notices,
+    e.g. {"tag": "049", "errorLevel": "MINOR", "message": "1st $a in 049 is too short."},
+    alongside the top-level {"status": {"summary": ..., "description": ...}}.
+    This walks the payload looking for any dict that has both 'tag' and 'message'
+    and collects them, regardless of which key they're nested under, since OCLC
+    doesn't document a single stable location for this array.
+    """
+    if found is None:
+        found = []
+    if isinstance(node, dict):
+        if "tag" in node and "message" in node:
+            found.append({
+                "tag": node.get("tag"),
+                "level": node.get("errorLevel") or node.get("level") or node.get("severity"),
+                "message": node.get("message"),
+            })
+        else:
+            for value in node.values():
+                _extract_oclc_field_messages(value, found)
+    elif isinstance(node, list):
+        for item in node:
+            _extract_oclc_field_messages(item, found)
+    return found
+
+
+def _call_oclc_validate(marcxml, validation_level="validateFull"):
+    """
+    Calls OCLC's Validate a Bibliographic Record endpoint:
+        POST /worldcat/manage/bibs/validate/{validationLevel}
+
+    Body: the MARC XML record (application/marcxml+xml).
+    Response (200/400): {"status": {"summary": ..., "description": ...}}
+
+    Returns a dict:
+        {
+            "called": bool,          # True if a request actually reached OCLC
+            "summary": str|None,     # e.g. "VALID", "BIB_LACKS_CONTROL_NUMBER"
+            "description": str|None,
+            "http_status": int|None,
+            "error": str|None,       # set if credentials/token/transport failed
+        }
+    """
+    result = {
+        "called": False,
+        "summary": None,
+        "description": None,
+        "http_status": None,
+        "error": None,
+        "raw_response": None,
+        "field_messages": [],
+    }
+
+    if validation_level not in OCLC_VALIDATION_LEVELS:
+        result["error"] = (
+            f"Invalid validationLevel '{validation_level}'. "
+            f"Must be one of: {sorted(OCLC_VALIDATION_LEVELS)}"
+        )
+        return result
+
+    try:
+        client_id, client_secret = _resolve_credentials()
+    except Exception as exc:
+        result["error"] = f"Could not load OCLC credentials: {exc}"
+        print(f"[OCLC validate] {result['error']}")
+        return result
+
+    try:
+        token, _info = get_access_token(client_id, client_secret)
+    except Exception as exc:
+        result["error"] = f"OCLC OAuth token request failed: {exc}"
+        print(f"[OCLC validate] {result['error']}")
+        return result
+
+    url = f"{OCLC_VALIDATE_BASE}/{validation_level}"
+    try:
+        response = requests.post(
+            url,
+            data=marcxml.encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/marcxml+xml",
+                "Accept": "application/json",
+                "User-Agent": get_user_agent(),
+            },
+            timeout=30,
+        )
+    except Exception as exc:
+        result["error"] = f"OCLC validate request failed: {exc}"
+        return result
+
+    result["called"] = True
+    result["http_status"] = response.status_code
+    result["raw_response"] = response.text
+
+    # Log to console/server logs so the actual OCLC response is visible while
+    # debugging (e.g. in `flask run` / `python app.py` output), since the
+    # Flask access log line alone only shows "POST /validate-marc 200 -".
+    print(f"[OCLC validate/{validation_level}] HTTP {response.status_code}: {response.text}")
+
+    try:
+        payload = response.json()
+    except ValueError:
+        result["error"] = f"OCLC returned a non-JSON response (HTTP {response.status_code})."
+        return result
+
+    status = payload.get("status", {}) if isinstance(payload, dict) else {}
+    result["summary"] = status.get("summary")
+    result["description"] = status.get("description")
+    result["field_messages"] = _extract_oclc_field_messages(payload)
+
+    if response.status_code == 401:
+        result["error"] = payload.get("message", "Unauthorized (401) — check OCLC credentials.")
+    elif response.status_code == 403:
+        result["error"] = payload.get("message", "Forbidden (403).")
+    elif response.status_code == 406:
+        result["error"] = payload.get("detail") or "Accept header not acceptable (406)."
+    elif response.status_code >= 500:
+        result["error"] = payload.get("detail") or payload.get("title") or "OCLC server error."
+    # 200 (valid) and 400 (validation rejected, e.g. BIB_LACKS_CONTROL_NUMBER) are
+    # normal validation outcomes, not transport errors — leave result["error"] as None
+    # and let the caller interpret result["summary"]/result["description"].
+
+    return result
+
+
+# ----------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------
 def _tag(local):
@@ -302,17 +464,33 @@ def _validate_rda_fields(datafields, cat_lang, err, warn):
 # ----------------------------------------------------------------------
 # Core validator
 # ----------------------------------------------------------------------
-def validate_marc_xml(xml_string):
+def validate_marc_xml(xml_string, include_oclc=True, oclc_validation_level="validateFull"):
+    """
+    Validate a MARCXML string.
+
+    Local checks (unchanged): XML well-formedness, namespace, record structure,
+    leader, control fields, data fields, indicators, subfield codes, delimiter
+    characters, whitespace anomalies, encoding, marcrules.txt rules, and RDA
+    336/337/338 consistency.
+
+    In addition, when include_oclc=True, each parsed <record> is also submitted
+    to OCLC's own "Validate a Bibliographic Record" endpoint
+    (POST /worldcat/manage/bibs/validate/{validationLevel}) and its verdict is
+    merged into the same errors/warnings lists, plus reported per-record under
+    results["oclc"].
+    """
     results = {
         "errors":   [],
         "warnings": [],
         "info":     [],
         "records":  0,
         "valid":    False,
+        "oclc":     [],
     }
 
     def err(msg):  results["errors"].append(msg)
     def warn(msg): results["warnings"].append(msg)
+    def info(msg): results["info"].append(msg)
 
     raw = xml_string.strip()
     if not raw:
@@ -385,7 +563,7 @@ def validate_marc_xml(xml_string):
         _validate_datafields(datafields, err, warn)
 
         # Determine cataloging language from 040 $b
-        cat_lang = "EN"  # default
+        cat_lang = "eng"  # default
         for f040 in [df for df in datafields if df.get("tag", "") == "040"]:
             subfields = f040.findall(_tag("subfield"))
             codes = {sf.get("code", ""): _text(sf) for sf in subfields}
@@ -456,6 +634,57 @@ def validate_marc_xml(xml_string):
                     warn(f"tag 040 $e '{val}' not recognised.")
             if "b" in codes and codes["b"].lower() not in VALID_LANG_CODES:
                 warn(f"tag 040 $b language code '{codes['b']}' not recognised.")
+
+        # --- OCLC "Validate a Bibliographic Record" check ---
+        # Runs in addition to (not instead of) the local RDA/MARC21 rules above.
+        if include_oclc:
+            try:
+                record_xml = etree.tostring(record, encoding="utf-8").decode("utf-8")
+            except Exception as exc:
+                record_xml = None
+                warn(f"Record {rec_idx}: could not serialize record for OCLC validation: {exc}")
+
+            if record_xml:
+                oclc_result = _call_oclc_validate(record_xml, oclc_validation_level)
+                oclc_result["record"] = rec_idx
+                results["oclc"].append(oclc_result)
+
+                if oclc_result["error"]:
+                    # Credentials / token / transport problem — don't fail the whole
+                    # validation, just flag that the OCLC check itself didn't run.
+                    warn(f"Record {rec_idx}: OCLC validation unavailable — {oclc_result['error']}")
+                else:
+                    overall_valid = (oclc_result["summary"] == "VALID")
+                    field_msgs = oclc_result.get("field_messages") or []
+
+                    for fm in field_msgs:
+                        level = (fm.get("level") or "").upper()
+                        fm_tag = fm.get("tag", "?")
+                        fm_msg = fm.get("message", "")
+                        text = f"tag {fm_tag}: {fm_msg} (OCLC)"
+                        # A "VALID" overall summary means the record passed; any notices
+                        # riding along with it (e.g. errorLevel "MINOR") are advisory only
+                        # and must never flip the result to failed.
+                        if overall_valid or level in ("MINOR", "WARNING", "WARN", "INFO"):
+                            warn(text)
+                        else:
+                            err(text)
+
+                    if overall_valid:
+                        info(f"Record {rec_idx}: OCLC validation passed (VALID).")
+                    elif oclc_result["summary"]:
+                        # Only fall back to the generic description when OCLC didn't
+                        # give us specific field-level messages to show instead.
+                        if not field_msgs:
+                            err(
+                                f"Record {rec_idx}: OCLC validation failed — "
+                                f"{oclc_result['description'] or oclc_result['summary']}"
+                            )
+                    elif oclc_result["called"]:
+                        warn(
+                            f"Record {rec_idx}: OCLC returned an unexpected response "
+                            f"(HTTP {oclc_result['http_status']})."
+                        )
 
     # Final summary
     e_count = len(results["errors"])
@@ -602,9 +831,13 @@ def _validate_datafields(datafields, err, warn):
         if extra:
             warn(f"tag {tag}: unexpected attributes: {extra}.")
 
-        # Validate that the tag exists in marcrules.txt
+        # Flag tags not covered by our local marcrules.txt reference. This is just
+        # a "we don't have a local definition for this" notice — it does NOT mean
+        # the tag is actually invalid (e.g. OCLC-specific tags like 019/029 are
+        # valid but may be absent from marcrules.txt). OCLC's own validate
+        # endpoint below is the authoritative check for field acceptability.
         if tag not in FIELD_RULES and tag[0] + "xx" not in FIELD_RULES:
-            err(f"tag {tag} invalid, please verify it is correct before submitting.")
+            warn(f"tag {tag}: not found in local marcrules.txt reference — verify it is correct before submitting.")
 
         # Indicator rules
         rule = FIELD_RULES.get(tag)
@@ -668,8 +901,23 @@ def _validate_datafields(datafields, err, warn):
                 bad = _has_nonprintable(text)
                 for hexc, name in bad:
                     err(f"tag {tag} ${code}: Non-printable char {hexc} ({name}).")
-                if "$" in text and tag not in ("856",):
-                    warn(f"tag {tag} ${code}: Contains '$' – possible flat‑file delimiter.")
+                if tag not in ("856",) and "$" in text:
+                    # A literal '$' immediately followed by a letter/digit (e.g. "$b", "$e", "$1")
+                    # strongly suggests an un-converted MARC mnemonic delimiter got merged into
+                    # this subfield's text instead of becoming a real <subfield> split. This kind
+                    # of structural corruption is invisible to per-tag checks but can make OCLC's
+                    # own parser reject the whole record with a generic "Bib is invalid" message
+                    # that doesn't name a field — so treat this pattern as an error, not a warning.
+                    delim_match = re.search(r"\$[a-z0-9]", text)
+                    if delim_match:
+                        err(
+                            f"tag {tag} ${code}: contains embedded '{delim_match.group(0)}' — looks like "
+                            f"an un-converted MARC subfield delimiter merged into this subfield's text "
+                            f"(not a real <subfield> split). This is a likely cause of OCLC rejecting the "
+                            f"whole record as invalid without naming a field."
+                        )
+                    else:
+                        warn(f"tag {tag} ${code}: Contains '$' – possible flat‑file delimiter.")
 
                 # Subfield repeatability
                 if rule and code in rule["subfields"]:

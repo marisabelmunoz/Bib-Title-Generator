@@ -8,12 +8,12 @@
 
   <!-- ── Step 1 — Load record ────────────────────────────────────────────── -->
   <section class="card" id="step-load">
-    <div class="card-header">
+    <div class="card-header accordion-toggle" style="color: #34495e;">
       <span class="step-badge">1</span>
       <h2>Load Record from WorldCat</h2>
-    </div>
-    <div class="card-body">
-
+      <span class="accordion-chevron"><i class="fa-solid fa-caret-down"></i></span>
+        </div>
+        <div class="card-body accordion-body" style="font-size: 0.85rem; color: #5a6673; line-height: 1.5;">
       <div class="field-grid">
         <div class="field-group">
           <label for="ocn-input" class="field-label">OCLC Number (OCN)</label>
@@ -52,12 +52,12 @@
 
   <!-- ── Step 2 — Build improvement prompt ───────────────────────────────── -->
   <section class="card" id="step-prompt">
-    <div class="card-header">
+    <div class="card-header accordion-toggle" style="color: #34495e;">
       <span class="step-badge">2</span>
       <h2>Generate Improvement Prompt for AI</h2>
+      <span class="accordion-chevron"><i class="fa-solid fa-caret-down"></i></span>
     </div>
-    <div class="card-body">
-
+<div class="card-body accordion-body accordion-collapsed">
       <div class="field-grid">
 
         <div class="field-group" style="grid-column: span 2;">
@@ -110,12 +110,12 @@
 
   <!-- ── Step 3 — Paste improved record & submit ─────────────────────────── -->
   <section class="card" id="step-submit">
-    <div class="card-header">
-      <span class="step-badge">3</span>
+    <div class="card-header accordion-toggle" style="color: #34495e;">  
+          <span class="step-badge">3</span>
       <h2>Paste Improved MARCXML &amp; Update</h2>
+      <span class="accordion-chevron"><i class="fa-solid fa-caret-down"></i></span>
     </div>
-    <div class="card-body">
-
+<div class="card-body accordion-body accordion-collapsed">
       <div class="field-group">
         <label for="improved-marcxml" class="field-label">Improved MARCXML from AI</label>
         <div class="field-hint">Paste the complete record returned by the AI. The OCN in field 001 will be used to PUT the update to WorldCat.</div>
@@ -176,7 +176,7 @@
 
   <!-- ── Result ──────────────────────────────────────────────────────────── -->
   <section class="card hidden" id="step-result">
-    <div class="card-header">
+    <div class="card-header accordion-toggle">
       <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
