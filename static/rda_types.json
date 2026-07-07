@@ -372,61 +372,61 @@
       {
         "term": "audio",
         "code": "s",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": "s"
       },
       {
         "term": "computer",
         "code": "c",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": "c"
       },
       {
         "term": "microvorm",
         "code": "h",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": "h"
       },
       {
         "term": "microscopisch",
         "code": "p",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": ""
       },
       {
         "term": "geprojecteerd",
         "code": "g",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": "g or m"
       },
       {
         "term": "stereografisch",
         "code": "e",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": ""
       },
       {
         "term": "zonder medium",
         "code": "n",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": "t or k"
       },
       {
         "term": "video",
         "code": "v",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": "v"
       },
       {
         "term": "overig",
         "code": "x",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": "z"
       },
       {
         "term": "ongespecificeerd",
         "code": "z",
-        "source": "rdamedium/dut",
+        "source": "rdamedia/dut",
         "leader_code": "z"
       }
     ]
