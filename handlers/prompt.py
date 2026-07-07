@@ -181,7 +181,7 @@ def build_prompt(biography, index_val, year, place, description, isbn, format_bo
         leader = leader_prebuilt
     else:
         # Build a sensible default: Type='a', BLvl='m', Ctrl=' ', ELvl='7', Desc='i'
-        leader = build_LDR(LDR_06='a', LDR_07='m', LDR_08=' ', LDR_17='7', LDR_18='i')
+        leader = build_LDR(LDR_06='a', LDR_07='m', LDR_08=' ', LDR_09='a', LDR_17='7', LDR_18='i')
 
     # ── Fallback values (used in legacy path and for example block) ──────────
     year_clean  = year.strip() if (year.strip().isdigit() and len(year.strip()) == 4) \

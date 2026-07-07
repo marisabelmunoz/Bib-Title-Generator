@@ -922,8 +922,8 @@
     const l08 = document.getElementById('ldr-08').value;
     const l17 = document.getElementById('ldr-17').value;
     const l18 = document.getElementById('ldr-18').value;
-    // Build fixed parts: 00-04=00000, 05=n, 09-16= 2200000 (space+2+2+00000), 19-23= 4500
-    const ldr = '00000' + 'n' + l06 + l07 + l08 + ' 2200000' + l17 + l18 + ' 4500';
+    // Build fixed parts: 00-04=00000, 05=n, 09-16=a2200000 (space+2+2+00000), 19-23= 4500
+    const ldr = '00000' + 'n' + l06 + l07 + l08 + 'a2200000' + l17 + l18 + ' 4500';
     return ldr;
   }
 

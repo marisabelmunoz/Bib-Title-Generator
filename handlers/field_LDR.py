@@ -52,8 +52,9 @@ LDR_07 = [
 
 LDR_08 = [
     (" ", "  — no specified type of control"),
-    ("a", "a — archival"),
+    ("a", "a — Character Coding Scheme"),
 ]
+
 
 LDR_17 = [
     (" ", "  — Full level"),
@@ -100,7 +101,7 @@ def build_LDR(
         LDR_06,      # 06
         LDR_07,      # 07
         LDR_08,      # 08
-        ' 2200000',  # 09-16
+        'a2200000',  # 09-16
         LDR_17,      # 17
         LDR_18,      # 18
         ' 4500'      # 19-23
