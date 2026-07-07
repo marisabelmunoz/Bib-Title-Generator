@@ -876,6 +876,20 @@
         nameEl.value = '';
         textEl.value = '';
       });
+
+       // ── Added Accordion Collapse Toggle Logic ─────────────────────
+        document.querySelectorAll('.accordion-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function () {
+                const card = this.closest('.card');
+                const body = card.querySelector('.card-body');
+                const chevron = this.querySelector('.accordion-chevron');
+
+                if (body) body.classList.toggle('accordion-collapsed');
+                if (chevron) chevron.classList.toggle('rotated');
+                card.classList.toggle('card-collapsed');
+            });
+        });
+        
     })();
     </script>
 
