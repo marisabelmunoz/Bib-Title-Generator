@@ -252,8 +252,9 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 
 **RDA core elements to include:**
 - 072 #7 (nur value ONLY if given on the description!) ALWAYS WITH `$2 nur`
-- 100/110/111 (creator)
-- 245 (title statement)
+- 100/110/111 (creator) : if the role is mentioned, include it in the appropriate subfields ($4 and $e for role)
+  Use https://www.loc.gov/marc/relators/relacode.html as reference for MARC21 relator codes.
+- 245 (title statement) : if the title is mentioned, include it in the appropriate subfields ($a for title, $b for subtitle) as well as responsible parties ($c).
 - 250 (edition) - exactly as stated on the text, if not stated, do not include this field
 - 264 #1 (production/publication) – use RDA $b publisher, $c date
 - 264 #4 copyright year (always based on publication date unless stated on the text)
@@ -387,8 +388,9 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
 - 020  ISBN — subfield $a for number, $q for format in parentheses
 - 040  Language of cataloging ($b {cat_lang}), description conventions ($e rda)
 - 049  Holdings symbol ({institution_code})
-- 100/110/111  Creator with correct RDA relationship designator
-- 245  Title statement — check indicators and punctuation
+- 100/110/111  Creator with correct RDA relationship designator : if the role is mentioned, include it in the appropriate subfields ($4 and $e for role)
+  Use https://www.loc.gov/marc/relators/relacode.html as reference for MARC21 relator codes.
+- 245  Title statement : if the title is mentioned, include it in the appropriate subfields ($a for title, $b for subtitle) as well as responsible parties ($c).
 - 250  Edition (only if stated in the resource)
 - 264 _1  Publication statement — RDA form
 - 264 _4  Copyright date
