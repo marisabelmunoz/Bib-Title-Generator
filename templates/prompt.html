@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+<div class="content-col">
+    <section class="card">
+        <div class="card-header">
+           <i class="fa-solid fa-eye"></i>Main Prompt Preview
+        </div>
+        <div class="card-body accordion-body">
+           
+             <p style="font-style: italic; font-size: smaller;margin-top:1rem;">This is a preview of the main prompt that will be used for generating bibliographic records. 
+                If any line needs adjustment or clarification, please provide feedback via email or open an issue on the GitHub repository.
+                
+                <h2>These are the example parameters:</h2>
+                
+<pre>
+biography=" ",                
+index_val="1",                
+year="2010",                  
+place="xxu",                  
+description="""Title: The Quantum Thief / by Hannu Rajaniemi. 
+        First edition. 
+        New York: Tor Books, 2010. 
+        320 pages : illustrations ; 25 cm. 
+        ISBN: 978-0-7653-2649-9. 
+        Includes index. 
+        Summary: A science fiction heist novel set in a post-human solar system.""",
+isbn="9780765326499",
+format_book="hardcover",
+cat_lang="eng",               
+extra_instructions="Ensure the 300 field uses 'pages', 'illustrations', and 'cm'.",
+field_008_prebuilt=None,      
+leader_prebuilt="00000cam a2200000 i 4500" 
+                </pre>
+
+                <h2>This the example prompt result:</h2>
+
+             </p>
+            <hr style="height: 1; border: 1px solid #eee; margin: 1rem 0">
+            <!-- <pre style="white-space: pre-wrap;">
+                {{ prompt }}
+            </pre> -->
+
+            <div class="markdown-body">
+                {{ prompt|markdown|safe }}
+            </div>
+
+        </div>
+    </section>
+
+  
+</div>
+
+{% endblock %}

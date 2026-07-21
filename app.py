@@ -738,6 +738,36 @@ def perform_update():
 def about():
     return render_template("about.html", local_version=read_local_version())
 
+# ── Prompt route ───────────────────────────────────────────────────────────────
+
+@app.route("/prompt")
+def prompt():
+    return render_template("prompt.html", prompt=build_prompt(
+    biography=" ",                
+    index_val="1",                
+    year="2010",                  
+    place="xxu",                  
+    description="""Title: The Quantum Thief / by Hannu Rajaniemi. 
+First edition. 
+New York: Tor Books, 2010. 
+320 pages : illustrations ; 25 cm. 
+ISBN: 978-0-7653-2649-9. 
+Includes index. 
+Summary: A science fiction heist novel set in a post-human solar system.""",
+    isbn="9780765326499",
+    format_book="hardcover",
+    cat_lang="eng",               
+    extra_instructions="Ensure the 300 field uses 'pages', 'illustrations', and 'cm'.",
+    field_008_prebuilt=None,      
+    leader_prebuilt="00000cam a2200000 i 4500"  
+))
+
+import markdown
+
+app.jinja_env.filters['markdown'] = lambda text: markdown.markdown(
+    text,
+    extensions=['fenced_code', 'codehilite', 'tables']  # handles ```code blocks``` and syntax highlighting
+)
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
@@ -751,3 +781,4 @@ if __name__ == "__main__":
         threading.Thread(target=open_browser, daemon=True).start()
 
     app.run(debug=True, host="127.0.0.1", port=5555)
+

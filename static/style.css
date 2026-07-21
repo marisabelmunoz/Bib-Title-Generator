@@ -159,6 +159,16 @@ code {
   border-radius: 4px;
 }
 
+pre {
+    padding: 16px;
+    border-radius: 6px;
+    overflow: auto;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    background: var(--teal-lt);
+
+}
+
 hr.divider {
   border: none;
   border-top: 1px solid var(--border);
@@ -652,22 +662,28 @@ hr.divider {
 
 /* ── Prose (config about section) ────────────────────────────────────────── */
 .prose p,
-.prose li {
+.prose li,
+.markdown-body li,
+.markdown-body p {
   font-size: 0.92rem;
   color: var(--muted);
   line-height: 1.7;
 }
 
-.prose ul {
+.prose ul,
+.markdown-body ul,
+.markdown-body ol {
   padding-left: 1.2rem;
   margin: 0.5rem 0;
 }
 
-.prose li {
+.prose li,
+.markdown-body li {
   margin-bottom: 0.3rem;
 }
 
-.prose p+p {
+.prose p+p,
+.markdown-body p+p {
   margin-top: 0.75rem;
 }
 
@@ -1680,7 +1696,6 @@ hr.divider {
 .accordion-body {
   transition: max-height 0.25s ease-out, opacity 0.2s ease, padding 0.2s ease;
   overflow: hidden;
-  max-height: 2000px;  /* large enough for content */
   opacity: 1;
   padding: 1.5rem;
 }
@@ -1716,4 +1731,46 @@ hr.divider {
 /* Ensure that when collapsed, the header border stays */
 .card-collapsed .card-header {
   border-bottom: 1px solid var(--border-light);
+}
+
+
+
+.markdown-body code {
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.markdown-body h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.markdown-body table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+}
+.markdown-body th,
+.markdown-body td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: left;
+}
+.markdown-body th {
+    background-color: #f6f8fa;
+    font-weight: 600;
+}
+
+.markdown-body strong {
+    font-weight: 700;
+    color: var(--teal);
+  }
+
+.markdown-body strong em {
+    text-decoration: none;
+    font-style: normal;
+    background: var(--teal-lt);
+    color: var(--teal);
 }
