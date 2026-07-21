@@ -220,7 +220,6 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 
 **Always set these fixed fields:**
 - 040: `<subfield code="a">{institution_code}</subfield><subfield code="b">{cat_lang}</subfield><subfield code="e">rda</subfield><subfield code="c">{institution_code}</subfield>`
-- 049: `<subfield code="a">{institution_code}</subfield>`
 
 **Leader (LDR):**
 - Use the following exact 24‑character Leader:
