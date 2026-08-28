@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 from lxml import etree
 import requests
+import os
+from datetime import datetime, timedelta, timezone
 
 # Use a relative import since config.py is in the same 'handlers' folder
 try:
@@ -34,6 +36,20 @@ def _load_rda_data():
         return json.load(f)
 
 RDA_DATA = _load_rda_data()
+ 
+RATE_LIMIT_FILE = Path(__file__).parent.parent / "static" / "data/rate.json"
+TOKEN_CACHE_FILE = Path(__file__).parent.parent / "static" / "data/cached_token.json"
+
+RATE_LIMIT_HEADERS = [
+    "X-Ratelimit-Limit-Day",
+    "X-Ratelimit-Limit-Month",
+    "X-Ratelimit-Remaining-Day",
+    "X-Ratelimit-Remaining-Month",
+    "Ratelimit-Reset",
+    "Ratelimit-Remaining",
+    "Ratelimit-Limit",
+]
+ 
 
 
 def _normalize_term(term):
@@ -188,9 +204,85 @@ def get_user_agent():
     return f"EUR Metadata Services Agent - contact: {inst_config['contact_email']}"
 
 
+
+# token and request preparation
+
+ 
+ 
+def _update_rate_limit_file(response: requests.Response) -> None:
+    """
+    Pull the rate-limit headers off a response (if present) and merge
+    them into /static/data/rate.json. Called after every API call.
+    """
+    captured = {
+        header: response.headers[header]
+        for header in RATE_LIMIT_HEADERS
+        if header in response.headers
+    }
+    if not captured:
+        return  # this response didn't include any rate-limit headers
+ 
+    os.makedirs(os.path.dirname(RATE_LIMIT_FILE), exist_ok=True)
+ 
+    existing = {}
+    if os.path.exists(RATE_LIMIT_FILE):
+        try:
+            with open(RATE_LIMIT_FILE, "r") as f:
+                existing = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            existing = {}
+ 
+    existing.update(captured)
+    existing["last_updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
+    existing["last_endpoint"] = response.url
+    existing["last_status_code"] = response.status_code
+ 
+    with open(RATE_LIMIT_FILE, "w") as f:
+        json.dump(existing, f, indent=2)
+ 
+ 
+
+def _load_cached_token() -> str | None:
+    """
+    Return a still-valid cached access token, or None if there isn't
+    one (missing file, malformed file, or expired/about-to-expire).
+    """
+    if not os.path.exists(TOKEN_CACHE_FILE):
+        return None
+ 
+    try:
+        with open(TOKEN_CACHE_FILE, "r") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+ 
+    token = data.get("access_token")
+    expires_at = data.get("expires_at")
+    if not token or not expires_at:
+        return None
+ 
+    try:
+        expiry = datetime.strptime(expires_at, "%Y-%m-%d %H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+ 
+    # 60-second buffer so we don't hand out a token that expires mid-request
+    if datetime.now(timezone.utc) >= expiry - timedelta(seconds=60):
+        return None
+ 
+    return token
+ 
+ 
+def _save_token_cache(data: dict) -> None:
+    os.makedirs(os.path.dirname(TOKEN_CACHE_FILE), exist_ok=True)
+    with open(TOKEN_CACHE_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+ 
+ 
 def get_access_token(client_id: str, client_secret: str) -> tuple[str, dict]:
     """
     Request an OAuth2 client_credentials token from OCLC.
+    Also caches the full response body to /static/data/cached_token.json.
     Returns (access_token, response_info_dict).
     """
     response = requests.post(
@@ -204,77 +296,113 @@ def get_access_token(client_id: str, client_secret: str) -> tuple[str, dict]:
         },
         timeout=20,
     )
-
+    _update_rate_limit_file(response)
+ 
     info = {
         "status_code": response.status_code,
         "raw_response": response.text,
     }
-
+ 
     if response.status_code != 200:
         raise RuntimeError(
             f"OAuth token request failed (HTTP {response.status_code}): {response.text}"
         )
-
+ 
     data = response.json()
     if "access_token" not in data:
         raise RuntimeError(f"No access_token in OAuth response: {data}")
-
+ 
+    _save_token_cache(data)
+ 
     return data["access_token"], info
-
-
-def get_bib_record(ocn: str, token: str) -> tuple[str, int, str]:
+ 
+ 
+def get_valid_access_token(client_id: str, client_secret: str) -> str:
+    """
+    Optional convenience helper: returns the cached token if it's
+    still good, otherwise requests (and caches) a new one. You can
+    call this instead of get_access_token() if you want caching
+    without having to check expiry yourself.
+    """
+    cached = _load_cached_token()
+    if cached:
+        return cached
+    token, _ = get_access_token(client_id, client_secret)
+    return token
+ 
+ 
+def get_bib_record(
+    ocn: str,
+    token: str,
+    client_id: str = None,
+    client_secret: str = None,
+) -> tuple[str, int, str]:
     """
     GET a bibliographic MARC record by OCN from WorldCat.
-
     Endpoint: GET /worldcat/manage/bibs/{oclcNumber}
-
     Returns (marcxml_string, http_status_code, raw_response_text).
     """
     url = f"{OCLC_API_BASE}/{ocn}"
-    response = requests.get(
-        url,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/marcxml+xml",
-            "User-Agent": get_user_agent(),
-        },
-        timeout=30,
-    )
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/marcxml+xml",
+        "User-Agent": get_user_agent(),
+    }
+    response = requests.get(url, headers=headers, timeout=30)
+    _update_rate_limit_file(response)
+ 
+    if response.status_code == 401 and client_id and client_secret:
+        new_token, _ = get_access_token(client_id, client_secret)
+        headers["Authorization"] = f"Bearer {new_token}"
+        response = requests.get(url, headers=headers, timeout=30)
+        _update_rate_limit_file(response)
+ 
     return response.text, response.status_code, response.text
-
-
-def put_bib_record(ocn: str, marcxml: str, token: str) -> tuple[str, int, str]:
+ 
+ 
+def put_bib_record(
+    ocn: str,
+    marcxml: str,
+    token: str,
+    client_id: str = None,
+    client_secret: str = None,
+) -> tuple[str, int, str]:
     """
     PUT (replace) a bibliographic MARC record by OCN in WorldCat.
-
     Endpoint: PUT /worldcat/manage/bibs/{oclcNumber}
-
     If the record does not exist a new record will be created.
     Automatically prepares the MARCXML before sending.
     Returns (marcxml_string, http_status_code, raw_response_text).
     """
     prepared_xml = prepare_marcxml_for_submission(marcxml)
     url = f"{OCLC_API_BASE}/{ocn}"
-    response = requests.put(
-        url,
-        data=prepared_xml.encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/marcxml+xml",
-            "Accept": "application/marcxml+xml",
-            "User-Agent": get_user_agent(),
-        },
-        timeout=30,
-    )
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/marcxml+xml",
+        "Accept": "application/marcxml+xml",
+        "User-Agent": get_user_agent(),
+    }
+    response = requests.put(url, data=prepared_xml.encode("utf-8"), headers=headers, timeout=30)
+    _update_rate_limit_file(response)
+ 
+    if response.status_code == 401 and client_id and client_secret:
+        new_token, _ = get_access_token(client_id, client_secret)
+        headers["Authorization"] = f"Bearer {new_token}"
+        response = requests.put(url, data=prepared_xml.encode("utf-8"), headers=headers, timeout=30)
+        _update_rate_limit_file(response)
+ 
     return response.text, response.status_code, response.text
-
-
-def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
+ 
+ 
+def create_bib_record(
+    marcxml: str,
+    token: str,
+    client_id: str = None,
+    client_secret: str = None,
+) -> tuple[str, int, str]:
     """
     Create a new bibliographic record in WorldCat.
-
     Endpoint: POST /worldcat/manage/bibs
-
     Automatically prepares the MARCXML before sending.
     Returns (marcxml_string, http_status_code, raw_response_text).
     """
@@ -285,7 +413,7 @@ def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
         "Accept": "application/marcxml+xml",
         "User-Agent": get_user_agent(),
     }
-
+ 
     try:
         response = requests.post(
             OCLC_API_BASE,
@@ -293,9 +421,24 @@ def create_bib_record(marcxml: str, token: str) -> tuple[str, int, str]:
             headers=headers,
             timeout=30,
         )
+        _update_rate_limit_file(response)
+ 
+        if response.status_code == 401 and client_id and client_secret:
+            new_token, _ = get_access_token(client_id, client_secret)
+            headers["Authorization"] = f"Bearer {new_token}"
+            response = requests.post(
+                OCLC_API_BASE,
+                data=prepared_xml.encode("utf-8"),
+                headers=headers,
+                timeout=30,
+            )
+            _update_rate_limit_file(response)
+ 
         return response.text, response.status_code, response.text
     except Exception as e:
         return str(e), 500, str(e)
+
+# end of token use
 
 
 def _escape_xml(text: str) -> str:

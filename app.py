@@ -43,7 +43,7 @@ from handlers.field_008 import build_008
 from handlers.oclc_api import create_bib_record, get_access_token, get_bib_record, put_bib_record
 from handlers.prompt import build_prompt, build_update_prompt
 from handlers.validate import validate_marc_xml, _strip_ns, _tag, MARC_NS 
-
+from handlers.response_rate import load_rate_data, format_comma, format_pct, format_duration, format_since, format_ocn
 
 app = Flask(__name__)
 
@@ -57,6 +57,15 @@ REMOTE_VERSION_URL = (
 )
 GIT_PULL_TIMEOUT   = 30  # seconds
 
+@app.context_processor
+def inject_rate_data():
+    return {"rate": load_rate_data()}
+
+app.jinja_env.filters["comma"] = format_comma
+app.jinja_env.filters["pct"] = format_pct
+app.jinja_env.filters["duration"] = format_duration
+app.jinja_env.filters["since"] = format_since
+app.jinja_env.filters["ocn"] = format_ocn
 
 def read_local_version() -> str:
     """Return the version string from local version.txt, or 'Unknown'."""
@@ -738,6 +747,36 @@ def perform_update():
 def about():
     return render_template("about.html", local_version=read_local_version())
 
+# ── Prompt route ───────────────────────────────────────────────────────────────
+
+@app.route("/prompt")
+def prompt():
+    return render_template("prompt.html", prompt=build_prompt(
+    biography=" ",                
+    index_val="1",                
+    year="2010",                  
+    place="xxu",                  
+    description="""Title: The Quantum Thief / by Hannu Rajaniemi. 
+First edition. 
+New York: Tor Books, 2010. 
+320 pages : illustrations ; 25 cm. 
+ISBN: 978-0-7653-2649-9. 
+Includes index. 
+Summary: A science fiction heist novel set in a post-human solar system.""",
+    isbn="9780765326499",
+    format_book="hardcover",
+    cat_lang="eng",               
+    extra_instructions="Ensure the 300 field uses 'pages', 'illustrations', and 'cm'.",
+    field_008_prebuilt=None,      
+    leader_prebuilt="00000cam a2200000 i 4500"  
+))
+
+import markdown
+
+app.jinja_env.filters['markdown'] = lambda text: markdown.markdown(
+    text,
+    extensions=['fenced_code', 'codehilite', 'tables']  # handles ```code blocks``` and syntax highlighting
+)
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
@@ -751,3 +790,4 @@ if __name__ == "__main__":
         threading.Thread(target=open_browser, daemon=True).start()
 
     app.run(debug=True, host="127.0.0.1", port=5555)
+

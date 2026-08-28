@@ -77,31 +77,36 @@ Your only task for the 008 is to copy it verbatim into:
 
 def _build_auto_008_section(field_008, year_clean, place_clean, idx_clean, bio_clean, today_str) -> str:
     """Return the legacy prompt section that asks the AI to determine literary form, bio, and language."""
-    return f"""**008 fixed field (books):**
+    return f"""
 
-**CRITICAL 008 CONSTRUCTION:**
+### **008 fixed field:**
 
-The 008 field is pre-built as: `{field_008}`
+#### CRITICAL 008 CONSTRUCTION:
+
+The `008` field is pre-built as: `{field_008}`
 
 You MUST replace `LANG_CODE_HERE` with the correct 3-character language code (e.g., 'dut', 'eng', 'fre').
 
-DO NOT change anything else in the 008 field. Keep the `00`, the index value, and the biography code exactly as shown.
+DO NOT change anything else in the `008` field. Keep the `00`, the index value, and the biography code exactly as shown.
 
 **The 008 field must be exactly 40 characters including spaces. Do not add or remove spaces.**
 
-**CORRECT PATTERN (spaces exactly as shown):**
+#### CORRECT PATTERN (spaces exactly as shown
+
 `260414s{year_clean}    {place_clean}           00{idx_clean}[LITFORM][BIO][LANGCODE] d`
 
 **They must be consecutive characters including the spaces!**
 
-Where:
+### Where:
+
 - `[LITFORM]` = YOU determine (single character, position 33) - see literary form rules below
 - `[BIO]` = YOU determine (single character, position 34) - see biography rules below
 - `[LANGCODE]` = YOU determine (3 characters, positions 35-37) - see language rules below
 
-**CRITICAL:** Do NOT copy 'u' or 'eng' from any example. You MUST analyze the input metadata and replace `[LITFORM]`, `[BIO]`, and `[LANGCODE]` with your determined values.
+**CRITICAL:** Do NOT copy 'u' or 'eng' from any example. You **MUST** analyze the input metadata and replace `[LITFORM]`, `[BIO]`, and `[LANGCODE]` with your determined values.
 
-**STRICT POSITION MAPPING (40 characters exactly):**
+#### STRICT POSITION MAPPING (40 characters exactly):
+
 **EXACT CHARACTER POSITIONS (count them, DO NOT RETURN RESULT UNTIL CORRECT!):**
 
 | Position(s) | Content | Source |
@@ -109,48 +114,50 @@ Where:
 | 00-05 | `{today_str}` | FIXED - Date entered |
 | 06    | `s` | FIXED - Single known date |
 | 07-10 | `{year_clean}` | From publication date |
-| 11-14 | space space space space | FIXED |
+| 11-14 | `space` `space` `space` `space` | FIXED |
 | 15-17 | `{place_clean}` | From publisher country |
-| 18-21 | space space space space | FIXED |
-| 22    | space | FIXED |
-| 23    | space | FIXED |
-| 24-29 | space space space space space space | FIXED |
+| 18-21 | `space` `space` `space` `space` | FIXED |
+| 22    | `space` | FIXED |
+| 23    | `space` | FIXED |
+| 24-29 | `space` `space` `space` `space` `space` `space` | FIXED |
 | 30    | `0` | FIXED |
 | 31    | `{idx_clean}` | FIXED - Index value |
-| 32    | space | FIXED |
-| 33    | `[LITFORM]` | YOU ANALYZE |
-| 34    | `[BIO]` | YOU ANALYZE |
-| 35-37 | `[LANGCODE]` | YOU ANALYZE |
-| 38    | space | FIXED |
+| 32    | `space` | FIXED |
+| 33    | `[LITFORM]` | **YOU ANALYZE** |
+| 34    | `[BIO]` | **YOU ANALYZE** |
+| 35-37 | `[LANGCODE]` | **YOU ANALYZE** |
+| 38    | `space` | FIXED |
 | 39    | `d` | FIXED - Other cataloging source |
 
-**Determining 008 Language Code (positions 35-37):**
+#### Determining 008 Language Code (positions 35-37):
 
-Analyze the input metadata:
+##### Analyze the input metadata:
+
 1. Any explicit "Taal"/"Language" field → use that code
 2. The language of the title and subtitle
-3. The language of the 520 summary/description
+3. The language of the `520` summary/description
 4. Author's name and publisher location as secondary clues
 
-Never default to 'eng' without verification. When in doubt, use 'und'.
+Never default to `eng` without verification. When in doubt, use `und`.
 
-**Determining 008 Literary Form (position 33):**
+#### Determining 008 Literary Form (position 33):
 
 ALL biographies, autobiographies, memoirs, and collective biographies are NON-FICTION.
 Always use code '0' for position 33 when the work is biographical.
 
-Codes:
-- 0 = Non-fiction  1 = Fiction  f = Novels  j = Short stories
-- p = Poetry  d = Dramas  e = Essays  h = Humor/satire
-- i = Letters  m = Mixed forms  s = Speeches  u = Unknown (last resort)
+#### Codes:
+
+- `0` = Non-fiction  `1` = Fiction  `f` = Novels  `j` = Short stories
+- `p` = Poetry  `d` = Dramas  `e` = Essays  `h` = Humor/satire
+- `i` = Letters  `m` = Mixed forms  `s` = Speeches  `u` = Unknown (last resort)
 
 - Value: `{field_008}`
-- Year: {year_clean}
-- Country code: {place_clean if place_clean.strip() in PLACE_LABELS else "Unknown (verify against LOC country codes)"}
-- Index present (008/31): {idx_clean}
-- Biography (008/34): {bio_clean!r}
-- Literary form (008/33): analyze content to determine this
-- Language (008/35-37): analyze content to determine this"""
+- Year: `{year_clean}`
+- Country code: `{place_clean if place_clean.strip() in PLACE_LABELS else "Unknown (verify against LOC country codes)"}`
+- Index present (008/31): `{idx_clean}`
+- Biography (008/34): `{bio_clean!r}`
+- Literary form (008/33): **analyze content to determine this**
+- Language (008/35-37): **analyze content to determine this**"""
 
 
 # ---------------------------------------------------------------------------
@@ -159,12 +166,14 @@ Codes:
 
 def build_prompt(biography, index_val, year, place, description, isbn, format_book,
                  cat_lang, extra_instructions, field_008_prebuilt=None,
-                 leader_prebuilt=None):   # <-- new parameter
+                 leader_prebuilt=None):  
     """
     Build the full AI cataloging prompt for creating a new MARC21 record.
 
     Parameters
+
     ----------
+
     field_008_prebuilt : str | None
         When provided (from the 008 Builder form) the prompt instructs the AI to
         copy this value verbatim.  When None the legacy auto-determination path
@@ -172,6 +181,7 @@ def build_prompt(biography, index_val, year, place, description, isbn, format_bo
     leader_prebuilt : str | None
         When provided (from the LDR Builder form) the prompt uses this exact
         24‑character Leader string. Otherwise a default is built via build_LDR().
+
     """
     inst_config      = load_institution_config()
     institution_code = inst_config["institution_code"]
@@ -211,68 +221,95 @@ def build_prompt(biography, index_val, year, place, description, isbn, format_bo
 
 Your task: analyze the input metadata provided and generate a complete MARC21 bibliographic record in MARCXML format.
 
-**Request body format:** application/marcxml+xml
+**Request body format:** `application/marcxml+xml`
 
-**Constraints**
+### **Constraints**
+
 - NEVER make up any information that is not provided
 - NEVER create a control number
 - DO NOT make assumptions or make up information for what is missing
 
-**Always set these fixed fields:**
-- 040: `<subfield code="a">{institution_code}</subfield><subfield code="b">{cat_lang}</subfield><subfield code="e">rda</subfield><subfield code="c">{institution_code}</subfield>`
+### **Always set these fixed fields:**
 
-**Leader (LDR):**
+- ***040***  `<subfield code="a">{institution_code}</subfield><subfield code="b">{cat_lang}</subfield><subfield code="e">rda</subfield><subfield code="c">{institution_code}</subfield>`
+
+### **Leader (LDR):**
+
 - Use the following exact 24‑character Leader:
   `{leader}`
-- This Leader has been constructed by the cataloger. DO NOT change any character.
+- This Leader has been constructed by the cataloger. **DO NOT** change any character.
 
-**ISBN & Format (Field 020):**
-- ISBN: {isbn if isbn else "Not provided (extract from description if found)"}
-- Book Format: {format_book if format_book else "Not provided"}
-- **CRITICAL FORMATTING:** Place the ISBN in subfield $a. Place the format (e.g., hardcover, paperback) in subfield $q inside parentheses.
-- Example: `<datafield tag="020" ind1=" " ind2=" "><subfield code="a">9781234567890</subfield><subfield code="q">(hardcover)</subfield></datafield>`
+### **ISBN & Format (Field 020):**
+
+- **ISBN:** {isbn if isbn else "Not provided (extract from description if found)"}
+- **Book Format:** {format_book if format_book else "Not provided"}
+- **CRITICAL FORMATTING:** Place the `ISBN` in subfield `$a`. Place the format (e.g., hardcover, paperback) in subfield `$q` inside parentheses.
+#### Example: 
+```
+<datafield tag="020" ind1=" " ind2=" ">
+    <subfield code="a">
+        9781234567890
+    </subfield>
+    <subfield code="q">
+        (hardcover)
+    </subfield>
+</datafield>
+```
 
 {section_008}
 
-**Field 020 (ISBN) Instructions:**
-- Use ISBN: {isbn if isbn else "Check input metadata"}
-- Use Book Format: {format_book if format_book else "Check input metadata"}
+### **Field 020 (ISBN) Instructions:**
+
+- Use ISBN: `{isbn if isbn else "Check input metadata"}`
+- Use Book Format: `{format_book if format_book else "Check input metadata"}`
 - IMPORTANT: Put the format in subfield $q enclosed in parentheses.
-  Example: `<datafield tag="020" ind1=" " ind2=" "><subfield code="a">{isbn if isbn else '1234567890'}</subfield><subfield code="q">({format_book if format_book else 'hardcover'})</subfield></datafield>`
+  
+#### Example:
 
-**Cataloging Language & Translation Instructions:**
-- The language of cataloging is: **{lang_name}** ({cat_lang}).
-- **Field 040 $b** MUST be set to `{cat_lang}`.
-- All descriptive text, notes, and physical descriptions (Field 300) MUST be in {lang_name}.
-- **Terminology Examples for Field 300:**
-  - If English: Use "pages", "illustrations", "color", "cm".
-  - If Dutch: Use "pagina's", "illustraties", "kleur", "cm".
-- Use {lang_name} for all general notes (500) and summary notes (520).
+```xml
+<datafield tag="020" ind1=" " ind2=" ">
+    <subfield code="a">{isbn if isbn else '1234567890'}</subfield>
+    <subfield code="q">({format_book if format_book else 'hardcover'})</subfield>
+</datafield>
+```
 
-**RDA core elements to include:**
-- 072 #7 (nur value ONLY if given on the description!) ALWAYS WITH `$2 nur`
-- 100/110/111 (creator) : if the role is mentioned, include it in the appropriate subfields ($4 and $e for role)
+### **Cataloging Language & Translation Instructions:**
+
+- The language of cataloging is: **`{lang_name}`** (`{cat_lang}`).
+- **Field `040 $b`** MUST be set to `{cat_lang}`.
+- All descriptive text, notes, and physical descriptions (Field `300`) MUST be in {lang_name}.
+- **Terminology Examples for Field `300`:**
+  - If English: Use `pages`, `illustrations`, `color`, `cm`.
+  - If Dutch: Use `pagina's`, `illustraties`, `kleur`, `cm`.
+- Use `{lang_name}` for all general notes (`500`) and summary notes (`520`).
+
+### **RDA core elements to include:**
+
+- ***072 #7*** (nur value ONLY if given on the description!) ALWAYS WITH `$2 nur`
+- ***100/110/111*** (creator) : if the role is mentioned, include it in the appropriate subfields (`$4` and `$e` for role)
   Use https://www.loc.gov/marc/relators/relacode.html as reference for MARC21 relator codes.
-- 245 (title statement) : if the title is mentioned, include it in the appropriate subfields ($a for title, $b for subtitle) as well as responsible parties ($c).
-- 250 (edition) - exactly as stated on the text, if not stated, do not include this field
-- 264 #1 (production/publication) – use RDA $b publisher, $c date
-- 264 #4 copyright year (always based on publication date unless stated on the text)
-- 300 (physical description) – pagination, illustrations, dimensions; determine if illustrations are present based on description and include in physical description
-- 336/337/338 (content, media, carrier type – RDA mandatory)
-    When cataloging in Dutch (dut), always use the Dutch RDA terms for fields 336, 337, and 338, and append '/dut' to the source codes in subfield $2 (e.g., rdacontent/dut).
-    - dutch: 336: rdacontent/dut · 337: rdamedia/dut · 338: rdacarrier/dut ; common mistake to avoid: 337 is NOT `ongemedieerd` in dutch, but `zonder medium`. 338 is not `volume`, but `band` 
-    - english: 336: rdacontent · 337: rdamedia · 338: rdacarrier
-- 490 / 830 (series)
-- 500 (general notes as needed)
-- 504 (bibliography note) if the description mentions bibliography or sources, register, notes, etc.
-- 546 (language note) if the description mentions the language of the content in a way that is not clear from the 008 analysis
-- 650/651 (subjects) — keep them as #4 for evaluation; you can also use FAST headings and LCSH
-- 655 (genre/form) if the description mentions a specific genre or form
-- 700/710 (other contributors) : if the role is mentioned, include it in the appropriate subfields ($4 and $e for role)
+- ***245*** (title statement) : if the title is mentioned, include it in the appropriate subfields (`$a` for title, `$b` for subtitle) as well as responsible parties (`$c`).
+- ***250*** (edition) - exactly as stated on the text, if not stated, do not include this field
+- ***264 #1*** (production/publication) – use RDA `$b` publisher, `$c` date
+- ***264 #4*** copyright year (always based on publication date unless stated on the text)
+- ***300*** (physical description) – pagination, illustrations, dimensions; determine if illustrations are present based on description and include in physical description
+- ***336/337/338*** (content, media, carrier type – RDA mandatory)
+    When cataloging in Dutch (dut), always use the Dutch RDA terms for fields `336`, `337`, and `338`, and append '/dut' to the source codes in subfield `$2` (e.g., rdacontent/dut).
+    - **dutch**: `336`: rdacontent/dut · `337`: rdamedia/dut · `338`: rdacarrier/dut
+    - **common mistake to avoid**: `337` is NOT `ongemedieerd` in dutch, but `zonder medium`. `338` is not `volume`, but `band`
+    - **english**: `336`: rdacontent · `337`: rdamedia · `338`: rdacarrier
+- ***490 / 830*** (series)
+- ***500*** (general notes as needed)
+- ***504*** (bibliography note) if the description mentions bibliography or sources, register, notes, etc.
+- ***546*** (language note) if the description mentions the language of the content in a way that is not clear from the 008 analysis
+- ***650/651*** (subjects) — keep them as #4 for evaluation; you can also use FAST headings and LCSH
+- ***655*** (genre/form) if the description mentions a specific genre or form
+- ***700/710*** (other contributors) : if the role is mentioned, include it in the appropriate subfields ($4 and $e for role)
   Use https://www.loc.gov/marc/relators/relacode.html as reference for MARC21 relator codes.
+ 
+### **Example format (MARCXML):**
 
-**Example format (MARCXML):**
-
+```xml
 <record xmlns="http://www.loc.gov/MARC21/slim">
     <leader>{leader}</leader>
     <controlfield tag="008">{field_008_for_example}</controlfield>
@@ -290,19 +327,27 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
         <subfield code="a">Title of the Book</subfield>
     </datafield>
 </record>
+```
 
-**Input Metadata to Process:**
-ISBN: {isbn if isbn else "no isbn"}
-Format: {format_book if isbn else "no isbn tag to include this, ignore"}
+### **Input Metadata to Process:**
 
-**General Metadata:**
+- ISBN: `{isbn if isbn else "no isbn"}`
+- Format: `{format_book if isbn else "no isbn tag to include this, ignore"}`
+
+## **General Metadata:**
+
+```txt
 {description}
+```
 
-**Specific User Instructions:**
+## **Specific User Instructions:**
+
+```txt
 {extra_instructions if extra_instructions else "None provided."}
+```
 
+***Return only the MARCXML record in a code block to copy.***
 
-**Return only the MARCXML record in a code block to copy.**
 """
     return prompt.strip()
 
@@ -423,4 +468,7 @@ Your task: **improve the existing MARC21 bibliographic record** provided below.
 
 **Return only the complete improved MARCXML record in a single code block, ready to submit to the OCLC API.**
 """
+    
+    
+
     return prompt.strip()
