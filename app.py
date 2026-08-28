@@ -43,7 +43,7 @@ from handlers.field_008 import build_008
 from handlers.oclc_api import create_bib_record, get_access_token, get_bib_record, put_bib_record
 from handlers.prompt import build_prompt, build_update_prompt
 from handlers.validate import validate_marc_xml, _strip_ns, _tag, MARC_NS 
-
+from handlers.response_rate import load_rate_data, format_comma, format_pct, format_duration, format_since, format_ocn
 
 app = Flask(__name__)
 
@@ -57,6 +57,15 @@ REMOTE_VERSION_URL = (
 )
 GIT_PULL_TIMEOUT   = 30  # seconds
 
+@app.context_processor
+def inject_rate_data():
+    return {"rate": load_rate_data()}
+
+app.jinja_env.filters["comma"] = format_comma
+app.jinja_env.filters["pct"] = format_pct
+app.jinja_env.filters["duration"] = format_duration
+app.jinja_env.filters["since"] = format_since
+app.jinja_env.filters["ocn"] = format_ocn
 
 def read_local_version() -> str:
     """Return the version string from local version.txt, or 'Unknown'."""

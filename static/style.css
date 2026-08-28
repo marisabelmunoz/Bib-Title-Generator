@@ -1774,3 +1774,91 @@ hr.divider {
     background: var(--teal-lt);
     color: var(--teal);
 }
+/* ── WorldCat API rate-limit widget ─────────────────────────────────────── */
+.rate-card .card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.usage-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.usage-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.usage-row-head .usage-period {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.usage-row-head .usage-figures {
+  font-family: var(--font-mono);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.usage-bar-track {
+  height: 8px;
+  border-radius: 20px;
+  background: var(--border-light);
+  overflow: hidden;
+}
+
+.usage-bar-fill {
+  height: 100%;
+  border-radius: 20px;
+  background: var(--teal);
+  transition: width 0.3s ease;
+}
+
+.usage-bar-fill.warn {
+  background: var(--warn);
+}
+
+.usage-bar-fill.critical {
+  background: var(--error);
+}
+
+.rate-limit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border-light);
+  margin: 0;
+}
+
+.rate-limit-meta code {
+  font-size: 0.78em;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.05rem 0.4rem;
+  border-radius: 20px;
+}
+
+.status-pill.ok {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.status-pill.err {
+  background: var(--error-bg);
+  color: var(--error);
+}

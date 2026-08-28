@@ -1,0 +1,51 @@
+<div class="card rate-card">
+    <div class="card-header">
+        <i class="fa-solid fa-gauge-high"></i>
+        <h2>WorldCat API Usage</h2>
+    </div>
+    <div class="card-body">
+        {% if rate %}
+            {% set day_remaining = rate.get('X-Ratelimit-Remaining-Day', 0) %}
+            {% set day_limit = rate.get('X-Ratelimit-Limit-Day', 0) %}
+            {% set day_pct = day_remaining | pct(day_limit) %}
+            <div class="usage-row">
+                <div class="usage-row-head">
+                    <span class="usage-period">Today</span>
+                    <span class="usage-figures">{{ day_remaining | comma }} / {{ day_limit | comma }} left</span>
+                </div>
+                <div class="usage-bar-track">
+                    <div class="usage-bar-fill {{ 'critical' if day_pct < 10 else ('warn' if day_pct < 25 else '') }}"
+                         style="width: {{ day_pct }}%"></div>
+                </div>
+            </div>
+
+            {% set month_remaining = rate.get('X-Ratelimit-Remaining-Month', 0) %}
+            {% set month_limit = rate.get('X-Ratelimit-Limit-Month', 0) %}
+            {% set month_pct = month_remaining | pct(month_limit) %}
+            <div class="usage-row">
+                <div class="usage-row-head">
+                    <span class="usage-period">This month</span>
+                    <span class="usage-figures">{{ month_remaining | comma }} / {{ month_limit | comma }} left</span>
+                </div>
+                <div class="usage-bar-track">
+                    <div class="usage-bar-fill {{ 'critical' if month_pct < 10 else ('warn' if month_pct < 25 else '') }}"
+                         style="width: {{ month_pct }}%"></div>
+                </div>
+            </div>
+
+            {% set status = rate.get('last_status_code', 0) %}
+            <p class="rate-limit-meta">
+                <span>Resets in {{ rate.get('Ratelimit-Reset', 0) | duration }}</span>
+                <span>&middot;</span>
+                <span>
+                    Last call: OCN <code>{{ rate.get('last_endpoint', '') | ocn }}</code>
+                    <span class="status-pill {{ 'ok' if status < 400 else 'err' }}">{{ status }}</span>
+                </span>
+                <span>&middot;</span>
+                <span>Updated {{ rate.get('last_updated', '') | since }}</span>
+            </p>
+        {% else %}
+            <p class="rate-limit-meta">No API calls recorded yet.</p>
+        {% endif %}
+    </div>
+</div>
