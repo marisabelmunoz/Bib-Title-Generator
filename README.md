@@ -2,6 +2,10 @@
 
 An easy-to-use tool designed to help library staff generate, validate, and send AI-assisted MARC bibliographic records directly to OCLC WorldCat without repetitive manual copy-pasting.
 
+## License & Open Source
+
+This tool is open-source software released under the MIT License. You are free to use, modify, and redistribute this project at will, provided the original copyright notice and credit remain intact. See the [LICENSE](/LICENSE) file for full terms.
+
 ![screenshoot](screenshoot.png)
 
 ---
@@ -96,3 +100,4 @@ The application runs a lightweight local web server (`app.py`) directly on your 
 
 ## On Updates:
 on the top bar, if you isntalled using `.git`, you will be notified of any updates, which will happen automatically once you accept (feel free to review the code before you do.)
+
