@@ -3,3 +3,5 @@ requests
 cryptography
 pywin32; sys_platform == 'win32'
 markdown
+lxml
+anyio
