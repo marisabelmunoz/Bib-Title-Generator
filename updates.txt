@@ -9,3 +9,4 @@
 2026-07-06 : <b>Version 2.5</b> - Added validation using OCLC's validation endpoint, custom RDA mapping for 336,337,338 using English and Dutch versions (should throw warning if the cataloguing language does not match the field's value.) And corrected some prompt's inconsistencies. 
 2026-07-07 : Bugs fixes and prompt improvements. Copilot is working better with it.
 2026-08-28 : Added API Rate Limits Overview on /about page; cached token
+2026-11-05 : Able to add multiple lines to custom prompts.
