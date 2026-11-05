@@ -295,8 +295,8 @@ Your task: analyze the input metadata provided and generate a complete MARC21 bi
 - ***300*** (physical description) – pagination, illustrations, dimensions; determine if illustrations are present based on description and include in physical description
 - ***336/337/338*** (content, media, carrier type – RDA mandatory)
     When cataloging in Dutch (dut), always use the Dutch RDA terms for fields `336`, `337`, and `338`, and append '/dut' to the source codes in subfield `$2` (e.g., rdacontent/dut).
-    - **dutch**: `336`: rdacontent/dut · `337`: rdamedia/dut · `338`: rdacarrier/dut
-    - **common mistake to avoid**: `337` is NOT `ongemedieerd` in dutch, but `zonder medium`. `338` is not `volume`, but `band`
+    - **dutch**: `336`: rdacontent/dut · `337`: rdamedia/dut · `338`: rdacarrier/dut niet-bewegend beeld
+    - **common mistake to avoid**: `336` `sti` images is `niet-bewegend beeld`, `337` is NOT `ongemedieerd` in dutch, but `zonder medium`. `338` is not `volume`, but `band`
     - **english**: `336`: rdacontent · `337`: rdamedia · `338`: rdacarrier
 - ***490 / 830*** (series)
 - ***500*** (general notes as needed)

@@ -1,0 +1,547 @@
+{
+  "$schema": "https://example.org/marc-field-340.schema.json",
+  "field": "340",
+  "label": "Physical Medium",
+  "marc_format": "MARC 21 Bibliographic",
+  "repeatable": true,
+  "indicators": {
+    "first": {
+      "position": 1,
+      "defined": false,
+      "value": " ",
+      "description": "Undefined"
+    },
+    "second": {
+      "position": 2,
+      "defined": false,
+      "value": " ",
+      "description": "Undefined"
+    }
+  },
+  "subfield_delimiter": "$",
+  "oclc_delimiter": "ǂ",
+  "definition": "Physical description information for an item that requires technical equipment for its use, and/or more granular description information of an item's material properties to facilitate access and discovery or to support collection management. Coded physical information is contained in fields 007 and 008.",
+  "scope": "The field is repeated for each subfield $3 (Materials specified). Multiple values from the same source vocabulary may be recorded in the same field in separate occurrences of subfields. Terms from different source vocabularies are recorded in separate occurrences of the field.",
+  "input_standards": {
+    "full": "Optional/Optional",
+    "minimal": "Optional/Optional"
+  },
+  "guidelines": [
+    "Prefer use of a separate field for each unique term.",
+    "For a charcoal drawing on canvas in a wood frame: 340 ##$acanvas$2rdamat ; 340 ##$ccharcoal$2rdamat ; 340 ##$ewood$2rdamat",
+    "For a color ink self-portrait on rice paper: 340 ##$3self-portrait$arice paper ; 340 ##$3self-portrait$b18 x 23 cm ; 340 ##$3self-portrait$ccolored inks ; 340 ##$3self-portrait$enone ; 340 ##$3self-portrait$hbetween entry for April 7 and April 19, 1843"
+  ],
+  "subfields": [
+    {
+      "code": "a",
+      "marc": "$a",
+      "oclc": "ǂa",
+      "name": "Material base and configuration",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The material base (physical substance) and configuration on which the information is recorded. Material bases include audiotape, cartridge, chip, dot, fiche, globe, magnetic tape, microtape, sheet, ultratape, and videotape. For a list of RDA-controlled terms, see RDA Material.",
+      "examples": [
+        "340 ##$amarble.",
+        "340 ##$acanvas$2rdamat."
+      ],
+      "controlled_vocabulary": "RDA Material"
+    },
+    {
+      "code": "b",
+      "marc": "$b",
+      "oclc": "ǂb",
+      "name": "Dimensions",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The measurements of the material configuration (e.g., 35 mm for film, 90 min. for cassette tape, 11 x 15 cm for microfiche, and 12 in. for audio disc).",
+      "examples": [
+        "340 ##$aparchment$b20 cm. folded to 10 x 12 cm.",
+        "340 ##$3self-portrait$b18 x 23 cm"
+      ]
+    },
+    {
+      "code": "c",
+      "marc": "$c",
+      "oclc": "ǂc",
+      "name": "Material applied to surface",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The physical substance applied to the material base (e.g., ink, oil, paint, tempera, or a specific photographic emulsion such as albumen). For a list of RDA-controlled terms, see RDA Material.",
+      "examples": [
+        "340 ##$ccharcoal$2rdamat.",
+        "340 ##$3self-portrait$ccolored inks"
+      ],
+      "controlled_vocabulary": "RDA Material"
+    },
+    {
+      "code": "d",
+      "marc": "$d",
+      "oclc": "ǂd",
+      "name": "Information recording technique",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The means or technique used to record the information in or on the material base (e.g., cut, embossed, molded, pressed, punched, thermofax, and x-ray). For a list of RDA-controlled terms, see RDA Production Method.",
+      "examples": [
+        "340 ##$dhandwritten$dtyped.",
+        "340 ##$dstamping$2rdapm."
+      ],
+      "controlled_vocabulary": "RDA Production Method"
+    },
+    {
+      "code": "e",
+      "marc": "$e",
+      "oclc": "ǂe",
+      "name": "Support",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The physical material on which or in which records are mounted, bound, or otherwise supported. For a list of RDA-controlled terms, see RDA Material.",
+      "examples": [
+        "340 ##$ewood$2rdamat.",
+        "340 ##$3self-portrait$enone"
+      ],
+      "controlled_vocabulary": "RDA Material"
+    },
+    {
+      "code": "f",
+      "marc": "$f",
+      "oclc": "ǂf",
+      "name": "Reduction ratio value",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "A specific indication of the size of a micro-image in relation to the original from which it was produced. Most commonly, it is expressed numerically as a reduction ratio (e.g., 16:1, 90:1) or as a magnification value (e.g., 16x, 90x). For such designations expressed in general terms, use subfield $q.",
+      "examples": [
+        "340 ##$f24:1",
+        "340 ##$3case files$f48x."
+      ]
+    },
+    {
+      "code": "g",
+      "marc": "$g",
+      "oclc": "ǂg",
+      "name": "Color content",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "Color characteristics of the content of a resource. Achromatic values (white, gray, and black) are considered to be colors. For a list of RDA-controlled terms, see RDA Colour Content.",
+      "examples": [
+        "340 ##$gpolychrome$2rdacc",
+        "340 ##$gblack and white"
+      ],
+      "controlled_vocabulary": "RDA Colour Content"
+    },
+    {
+      "code": "h",
+      "marc": "$h",
+      "oclc": "ǂh",
+      "name": "Location within medium",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The location of the described materials within the material base and configuration (e.g., band on a disc, page of a book, track of an audiocassette, and frame number of slides).",
+      "examples": [
+        "340 ##$hcenter panel",
+        "340 ##$3self-portrait$hbetween entry for April 7 and April 19, 1843"
+      ]
+    },
+    {
+      "code": "i",
+      "marc": "$i",
+      "oclc": "ǂi",
+      "name": "Technical specifications of medium",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "Access requirements involving technical equipment.",
+      "examples": [
+        "340 ##$apaper tape$dpunched$iIbord Model 74 tape reader."
+      ]
+    },
+    {
+      "code": "j",
+      "marc": "$j",
+      "oclc": "ǂj",
+      "name": "Generation",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The relationship between an original carrier and the carrier of a reproduction made from the original (e.g., a first generation camera master, a second generation printing master). For a list of RDA-controlled terms, see RDA Generation.",
+      "examples": [
+        "340 ##$joriginal$2rdagen",
+        "340 ##$jprinting master$2rdagen"
+      ],
+      "controlled_vocabulary": "RDA Generation"
+    },
+    {
+      "code": "k",
+      "marc": "$k",
+      "oclc": "ǂk",
+      "name": "Layout",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The arrangement of text, images, etc., in a resource. For a list of RDA-controlled terms, see RDA Layout.",
+      "examples": [
+        "340 ##$kdouble sided$2rdalay"
+      ],
+      "controlled_vocabulary": "RDA Layout"
+    },
+    {
+      "code": "l",
+      "marc": "$l",
+      "oclc": "ǂl",
+      "name": "Binding",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "A method used to bind a published or unpublished resource, or other binding information. May be recorded using a controlled term or other structured description. For a list of RDA-controlled terms, see RDA Type of Binding. Additional unstructured (or textual) information on binding may be recorded in field 563.",
+      "examples": [
+        "340 ##$lsaddle stitch binding$2rdatb",
+        "340 ##$lCoptic bindings$2aat",
+        "340 ##$lCorrugated board bindings (Binding)$2rbmscv",
+        "340 ##$lPainted paper bindings (Binding)$2rbmscv",
+        "340 ##$3teacher edition$lcase binding$2rdatb",
+        "340 ##$3coursebook$lperfect binding$2rdatb",
+        "340 ##$3workbook$lspiral binding$2rdatb"
+      ],
+      "controlled_vocabulary": "RDA Type of Binding"
+    },
+    {
+      "code": "m",
+      "marc": "$m",
+      "oclc": "ǂm",
+      "name": "Book format",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The result of folding a printed sheet to form a gathering of leaves (e.g., a sheet folded once to form a folio, twice to form a quarto, three times to form an octavo). For a list of RDA-controlled terms, see RDA Bibliographic Format.",
+      "examples": [
+        "340 ##$mfolio$2rdabf",
+        "340 ##$m4to$2rdabf"
+      ],
+      "controlled_vocabulary": "RDA Bibliographic Format"
+    },
+    {
+      "code": "n",
+      "marc": "$n",
+      "oclc": "ǂn",
+      "name": "Font size",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The size of the type used to represent the characters and symbols in a resource. Font size may be expressed in general terms (e.g., large print), by specifying in addition the dimensions of the type measured in points (e.g., 20 point), or both. For a list of RDA-controlled terms, see RDA Font Size.",
+      "examples": [
+        "340 ##$ngiant print (36 point)$2rdafs",
+        "340 ##$n36 point"
+      ],
+      "controlled_vocabulary": "RDA Font Size"
+    },
+    {
+      "code": "o",
+      "marc": "$o",
+      "oclc": "ǂo",
+      "name": "Polarity",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "The relationship of the colors and tones in an image to the colors and tones of the object reproduced (e.g., positive, negative, or mixed polarity). For a list of RDA-controlled terms, see RDA Polarity.",
+      "examples": [
+        "340 ##$opositive$2rdapo"
+      ],
+      "controlled_vocabulary": "RDA Polarity"
+    },
+    {
+      "code": "p",
+      "marc": "$p",
+      "oclc": "ǂp",
+      "name": "Illustrative content",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "General and/or specific indication of the type or types of illustrative content present in a resource. For a list of RDA-controlled terms, see RDA Illustrative Content.",
+      "examples": [
+        "340 ##$gcolor$pillustrations",
+        "340 ##$gone color$pmaps",
+        "340 ##$gpolychrome$2rdacc$pillustration$2rdaill",
+        "340 ##$gpolychrome$2rdacc$pmap$2rdaill"
+      ],
+      "controlled_vocabulary": "RDA Illustrative Content"
+    },
+    {
+      "code": "q",
+      "marc": "$q",
+      "oclc": "ǂq",
+      "name": "Reduction ratio designator",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "A general description of the size of a micro-image in relation to the original from which it was produced (e.g., low reduction, ultra high reduction). For a list of RDA-controlled terms, see RDA Reduction Ratio Designation. For such designations expressed in specific numerical terms, use subfield $f.",
+      "examples": [
+        "340 ##$3case files$qhigh reduction$2rdarr"
+      ],
+      "controlled_vocabulary": "RDA Reduction Ratio Designation"
+    },
+    {
+      "code": "0",
+      "marc": "$0",
+      "oclc": "ǂ0",
+      "name": "Authority record control number or standard number",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Optional",
+        "minimal": "Optional"
+      },
+      "definition": "For information about subfield $0, see Control Subfields."
+    },
+    {
+      "code": "1",
+      "marc": "$1",
+      "oclc": "ǂ1",
+      "name": "Real World Object URI",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Optional",
+        "minimal": "Optional"
+      },
+      "definition": "For information about subfield $1, see Control Subfields."
+    },
+    {
+      "code": "2",
+      "marc": "$2",
+      "oclc": "ǂ2",
+      "name": "Source",
+      "repeatable": false,
+      "repeatability": "NR",
+      "input_standards": {
+        "full": "Required if applicable",
+        "minimal": "Required if applicable"
+      },
+      "definition": "Identification of the source of the term when it is from a controlled list. For more information about subfield $2, see Control Subfields.",
+      "examples": [
+        "340 ##$kdouble sided$2rdalay"
+      ]
+    },
+    {
+      "code": "3",
+      "marc": "$3",
+      "oclc": "ǂ3",
+      "name": "Materials specified",
+      "repeatable": false,
+      "repeatability": "NR",
+      "input_standards": {
+        "full": "Optional",
+        "minimal": "Optional"
+      },
+      "definition": "For information about subfield $3, see Control Subfields.",
+      "examples": [
+        "340 ##$3case files$aaperture cards.",
+        "340 ##$3case files$b9 x 19 cm.",
+        "340 ##$3case files$dmicrofilm.",
+        "340 ##$3case files$f48x.",
+        "340 ##$3case files$fhigh reduction$2rdarr"
+      ]
+    },
+    {
+      "code": "6",
+      "marc": "$6",
+      "oclc": "ǂ6",
+      "name": "Linkage",
+      "repeatable": false,
+      "repeatability": "NR",
+      "input_standards": {
+        "full": "System supplied",
+        "minimal": "System supplied"
+      },
+      "definition": "Data that link fields when non-Latin script is entered. This subfield is system supplied and does not appear in OCLC online displays. Do not manually add subfield $6. For more information about subfield $6, see Control Subfields."
+    },
+    {
+      "code": "8",
+      "marc": "$8",
+      "oclc": "ǂ8",
+      "name": "Field link and sequence number",
+      "repeatable": true,
+      "repeatability": "R",
+      "input_standards": {
+        "full": "Optional",
+        "minimal": "Optional"
+      },
+      "definition": "For information about subfield $8, see Control Subfields."
+    }
+  ],
+  "punctuation": {
+    "rules": [
+      "Include incidental punctuation needed within any subfields, e.g., commas, periods (following abbreviations or initials), etc.",
+      "Omit punctuation preceding each subfield unless the preceding subfield ends with an ellipsis, exclamation point, hyphen, period (following an abbreviation or initial), question mark, closing bracket, or closing parenthesis.",
+      "Omit the terminal period at the end of the field unless the last word is an abbreviation or initial."
+    ],
+    "example": "340 ##$acanvas$2rdamat"
+  },
+  "indexing": "For indexing and searching information, see Searching WorldCat Indexes, Fields 3xx.",
+  "marc21_history": [
+    {
+      "item": "Field 340 - Physical Medium",
+      "change": "REDESCRIBED, 2022",
+      "note": "Field definition and scope was redescribed in order to reduce redundancies related to other 34X fields described in the definition relating to subfield $f."
+    },
+    {
+      "item": "$f - Production rate/ratio",
+      "change": "RENAMED, 2022; REDEFINED, 2022",
+      "note": "Subfield was renamed 'Reduction ratio value' and the definition narrowed to the use of the subfield for size of micro-images. This reduces redundancies with 344, 345, 346, and 347."
+    },
+    {
+      "item": "$g - Color content",
+      "change": "NEW, 2017"
+    },
+    {
+      "item": "$j - Generation",
+      "change": "NEW, 2011"
+    },
+    {
+      "item": "$k - Layout",
+      "change": "NEW, 2011"
+    },
+    {
+      "item": "$l - Binding",
+      "change": "NEW, 2021"
+    },
+    {
+      "item": "$m - Book format",
+      "change": "NEW, 2011"
+    },
+    {
+      "item": "$n - Font size",
+      "change": "NEW, 2011"
+    },
+    {
+      "item": "$o - Polarity",
+      "change": "NEW, 2011"
+    },
+    {
+      "item": "$q - Reduction ratio designator",
+      "change": "NEW, 2022"
+    },
+    {
+      "item": "$p - Illustrative content",
+      "change": "NEW, 2020"
+    },
+    {
+      "item": "$0 - Authority record control number or standard number",
+      "change": "NEW, 2011"
+    },
+    {
+      "item": "$1 - Real World Object URI",
+      "change": "NEW, 2017"
+    },
+    {
+      "item": "$2 - Source",
+      "change": "NEW, 2011"
+    }
+  ],
+  "field_examples": [
+    "340 ##$amarble.",
+    "340 ##$acanvas$2rdamat",
+    "340 ##$ccharcoal$2rdamat",
+    "340 ##$ewood$2rdamat",
+    "340 ##$3self-portrait$arice paper",
+    "340 ##$3self-portrait$b18 x 23 cm",
+    "340 ##$3self-portrait$ccolored inks",
+    "340 ##$3self-portrait$enone",
+    "340 ##$3self-portrait$hbetween entry for April 7 and April 19, 1843",
+    "340 ##$aparchment$b20 cm. folded to 10 x 12 cm.",
+    "340 ##$f24:1",
+    "340 ##$3case files$f48x.",
+    "340 ##$gpolychrome$2rdacc",
+    "340 ##$gblack and white",
+    "340 ##$hcenter panel",
+    "340 ##$apaper tape$dpunched$iIbord Model 74 tape reader.",
+    "340 ##$joriginal$2rdagen",
+    "340 ##$jprinting master$2rdagen",
+    "340 ##$kdouble sided$2rdalay",
+    "340 ##$lsaddle stitch binding$2rdatb",
+    "340 ##$lCoptic bindings$2aat",
+    "340 ##$lCorrugated board bindings (Binding)$2rbmscv",
+    "340 ##$lPainted paper bindings (Binding)$2rbmscv",
+    "340 ##$3teacher edition$lcase binding$2rdatb",
+    "340 ##$3coursebook$lperfect binding$2rdatb",
+    "340 ##$3workbook$lspiral binding$2rdatb",
+    "340 ##$mfolio$2rdabf",
+    "340 ##$m4to$2rdabf",
+    "340 ##$ngiant print (36 point)$2rdafs",
+    "340 ##$n36 point",
+    "340 ##$opositive$2rdapo",
+    "340 ##$gcolor$pillustrations",
+    "340 ##$gone color$pmaps",
+    "340 ##$3case files$qhigh reduction$2rdarr",
+    "340 ##$3case files$aaperture cards$b9 x 19 cm.$dmicrofilm$f48x."
+  ],
+  "ai_prompt_hints": {
+    "purpose": "Use this JSON to generate, validate, or normalize MARC 340 Physical Medium fields from natural-language item descriptions.",
+    "rules": [
+      "Both indicators are blank.",
+      "Repeat field 340 for each subfield $3 (Materials specified).",
+      "Multiple values from the same source vocabulary may be recorded in the same field in separate occurrences of subfields.",
+      "Terms from different source vocabularies are recorded in separate occurrences of the field.",
+      "Subfield $2 is nonrepeatable and identifies the source vocabulary.",
+      "Prefer separate 340 fields for each unique term when practical."
+    ],
+    "prompt_template": "Given the item description: {{description}}, produce valid MARC 340 field(s). Use subfields a-q, 0-3, 6, 8. Include $2 source vocabulary when using controlled terms. Output JSON with fields: field, indicators, subfields."
+  }
+}

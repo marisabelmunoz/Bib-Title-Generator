@@ -94,27 +94,48 @@ def load_institution_config() -> dict:
 
 # ── Custom prompts ────────────────────────────────────────────────────────────
 
-def load_custom_prompts() -> list:
-    """Load custom prompts from file. Returns list of {name, text} dicts."""
-    if not CUSTOM_PROMPTS_FILE.exists():
-        return []
+def _parse_legacy_prompts(raw: str) -> list:
+    """Parse the old one-line-per-prompt 'name|||text' format."""
     prompts = []
-    for line in CUSTOM_PROMPTS_FILE.read_text(encoding="utf-8").splitlines():
+    for line in raw.splitlines():
         line = line.strip()
         if "|||" in line:
             name, _, text = line.partition("|||")
-            name = name.strip()
-            text = text.strip()
+            name, text = name.strip(), text.strip()
             if name and text:
                 prompts.append({"name": name, "text": text})
     return prompts
 
 
+def load_custom_prompts() -> list:
+    """
+    Load custom prompts. Returns list of {name, text} dicts.
+    Text may contain newlines, blank lines, lists, etc.
+    Automatically reads the old '|||' format if an existing file uses it;
+    it is converted to JSON the next time prompts are saved.
+    """
+    if not CUSTOM_PROMPTS_FILE.exists():
+        return []
+    raw = CUSTOM_PROMPTS_FILE.read_text(encoding="utf-8")
+    if not raw.strip():
+        return []
+    try:
+        data = json.loads(raw)
+        if isinstance(data, list):
+            return [p for p in data
+                    if isinstance(p, dict) and p.get("name") and p.get("text")]
+        return []
+    except json.JSONDecodeError:
+        return _parse_legacy_prompts(raw)
+
+
 def save_custom_prompts(prompts: list) -> None:
-    """Persist the full list of custom prompts to file."""
+    """Persist the full list of custom prompts as JSON (multi-line safe)."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    lines = [f"{p['name']}|||{p['text']}" for p in prompts]
-    CUSTOM_PROMPTS_FILE.write_text("\n".join(lines), encoding="utf-8")
+    CUSTOM_PROMPTS_FILE.write_text(
+        json.dumps(prompts, ensure_ascii=False, indent=2),
+        encoding="utf-8"
+    )
 
 
 def add_custom_prompt(name: str, text: str) -> list:
